@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zotero in AG — 从零构建交互式教程</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. ANTHROPIC CLAUDE 人文出版物视觉设计系统 (Design Tokens)
+       ========================================================================== */
+    :root {
+      --bg-primary: #FAF9F5;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #F6F4EE;
+      --bg-muted: #EFECE6;
+      --bg-code: #F3F1EB;
+      --bg-terminal: #191817;
+
+      --text-primary: #1F1E1D;
+      --text-secondary: #5F5D56;
+      --text-muted: #8E8B82;
+      --text-on-accent: #FFFFFF;
+
+      --border-subtle: #E8E6DF;
+      --border-strong: #D5D2C8;
+
+      --accent-terracotta: #D97757;
+      --accent-terracotta-hover: #C46344;
+      --accent-terracotta-soft: #F8EFEA;
+      --accent-terracotta-border: #EBC9B8;
+
+      --accent-sand: #D99B52;
+      --accent-sand-soft: #FBF5EC;
+
+      --accent-sage: #52734D;
+      --accent-sage-soft: #EEF4EC;
+
+      --accent-danger: #C24E42;
+      --accent-danger-soft: #FBECE9;
+
+      --syn-kw: #B5492B;
+      --syn-str: #486B43;
+      --syn-num: #9E6A21;
+      --syn-com: #8E8B82;
+      --syn-fn: #375A7F;
+      --syn-tag: #9E472A;
+
+      --shadow-card: 0 1px 3px rgba(31, 30, 29, 0.04), 0 1px 2px rgba(31, 30, 29, 0.02);
+      --shadow-elevated: 0 8px 24px rgba(31, 30, 29, 0.07);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --font-serif: "Newsreader", "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "Microsoft YaHei", "Charter", "Georgia", serif;
+      --font-sans: "Inter", "PingFang SC", "HarmonyOS Sans SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", monospace;
+
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-fast: 180ms;
+      --duration-normal: 280ms;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #191817;
+      --bg-surface: #242220;
+      --bg-elevated: #2C2926;
+      --bg-muted: #1E1D1B;
+      --bg-code: #1E1D1B;
+      --bg-terminal: #121110;
+
+      --text-primary: #E5E3DE;
+      --text-secondary: #A8A49B;
+      --text-muted: #78746C;
+      --text-on-accent: #191817;
+
+      --border-subtle: #383532;
+      --border-strong: #4A4642;
+
+      --accent-terracotta: #E08365;
+      --accent-terracotta-hover: #EB9579;
+      --accent-terracotta-soft: rgba(224, 131, 101, 0.14);
+      --accent-terracotta-border: rgba(224, 131, 101, 0.35);
+
+      --accent-sand: #E5B47A;
+      --accent-sand-soft: rgba(229, 180, 122, 0.14);
+
+      --accent-sage: #87A380;
+      --accent-sage-soft: rgba(135, 163, 128, 0.14);
+
+      --accent-danger: #E06C60;
+      --accent-danger-soft: rgba(224, 108, 96, 0.14);
+
+      --syn-kw: #EB9579;
+      --syn-str: #97BA90;
+      --syn-num: #E5B47A;
+      --syn-com: #78746C;
+      --syn-fn: #8BB4D9;
+      --syn-tag: #EB9579;
+
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25);
+      --shadow-elevated: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.76;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color var(--duration-normal) var(--ease-out-expo),
+                  color var(--duration-normal) var(--ease-out-expo);
+    }
+
+    h1, h2, h3, .serif-title {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--text-primary);
+    }
+    h1 { font-size: clamp(1.9rem, 3vw, 2.55rem); line-height: 1.24; margin-bottom: 0.85rem; }
+    h2 { font-size: clamp(1.4rem, 2.2vw, 1.78rem); line-height: 1.3; margin-bottom: 0.7rem; }
+    h3 { font-size: 1.15rem; line-height: 1.4; margin-bottom: 0.48rem; }
+    h4 { font-size: 0.98rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; }
+
+    p { color: var(--text-secondary); margin-bottom: 0.95rem; max-width: 74ch; line-height: 1.82; }
+    ul, ol { color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 0.95rem; }
+    li { margin-bottom: 0.35rem; }
+    svg text { font-family: var(--font-sans); }
+
+    code, pre { font-family: var(--font-mono); font-size: 0.86em; }
+    p code, li code, td code, th code, h1 code, h2 code, h3 code, h4 code, .jit-concept code, .deep-dive code, .callout-note code, .sandbox-guide code {
+      background: var(--bg-code);
+      color: var(--text-primary);
+      padding: 0.05em 0.34em;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.84em;
+      line-height: 1.2;
+      vertical-align: 0.03em;
+    }
+    h1 code, h2 code, h3 code, h4 code { font-size: 0.82em; padding: 0.04em 0.3em; }
+
+    .mobile-topbar {
+      display: none; position: sticky; top: 0; z-index: 40;
+      background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
+      padding: 0.75rem 1rem; align-items: center; justify-content: space-between; gap: 0.75rem;
+    }
+    .app-shell { display: grid; grid-template-columns: 276px minmax(0, 1fr); min-height: 100vh; max-width: 1420px; margin: 0 auto; }
+    .sidebar {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 1.85rem 1.3rem;
+      border-right: 1px solid var(--border-subtle); background: var(--bg-primary);
+      display: flex; flex-direction: column; justify-content: space-between; gap: 1.25rem;
+    }
+    .brand-eyebrow {
+      font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
+      color: var(--accent-terracotta); display: inline-flex; align-items: center; gap: 0.4rem;
+      margin-bottom: 0.35rem; font-weight: 600;
+    }
+    .brand-title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; color: var(--text-primary); line-height: 1.35; margin-bottom: 0.35rem; }
+    .brand-sub { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0; }
+    .nav-list { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 1.1rem; }
+    .nav-link {
+      display: flex; align-items: center; gap: 0.55rem; padding: 0.5rem 0.7rem;
+      border-radius: var(--radius-sm); color: var(--text-secondary); text-decoration: none;
+      font-size: 0.85rem; line-height: 1.35; border-left: 3px solid transparent;
+      transition: all var(--duration-fast) var(--ease-out-expo);
+    }
+    .nav-link:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .nav-link.active { background: var(--accent-terracotta-soft); color: var(--accent-terracotta); border-left-color: var(--accent-terracotta); font-weight: 600; }
+    .nav-num { font-family: var(--font-mono); font-size: 0.72rem; opacity: 0.8; min-width: 1.35rem; }
+    .progress-box { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem; box-shadow: var(--shadow-card); }
+    .progress-header { display: flex; justify-content: space-between; font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-secondary); margin-bottom: 0.45rem; }
+    .progress-track { height: 6px; background: var(--bg-muted); border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: var(--accent-terracotta); transition: width var(--duration-normal) var(--ease-out-expo); }
+    .sidebar-actions { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+    .main-canvas { padding: 2.75rem clamp(1.25rem, 4vw, 3.25rem) 5rem; max-width: 980px; width: 100%; }
+    .section-block { padding-bottom: 3.5rem; margin-bottom: 3.5rem; border-bottom: 1px solid var(--border-subtle); scroll-margin-top: 1.5rem; }
+    .section-block:last-child { border-bottom: none; margin-bottom: 0; }
+    .section-eyebrow {
+      display: inline-block; font-family: var(--font-mono); font-size: 0.74rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-terracotta);
+      margin-bottom: 0.45rem; font-weight: 600;
+    }
+
+    @media (max-width: 920px) {
+      .mobile-topbar { display: flex; }
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed; left: 0; top: 0; bottom: 0; width: 280px; z-index: 60;
+        transform: translateX(-105%); transition: transform var(--duration-normal) var(--ease-out-expo);
+        box-shadow: var(--shadow-elevated);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main-canvas { padding: 1.75rem 1.15rem 4rem; }
+      .section-block { scroll-margin-top: 4.2rem; }
+    }
+
+    .fz-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.35rem; box-shadow: var(--shadow-card); margin-bottom: 1.25rem; }
+    .fz-card-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fz-hint { font-size: 0.8rem; color: var(--text-muted); }
+
+    .fz-badge-mono, .fz-badge-terracotta, .fz-badge-sage, .fz-badge-danger {
+      display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--font-mono);
+      font-size: 0.74rem; padding: 0.2rem 0.55rem; border-radius: 999px; font-weight: 500;
+    }
+    .fz-badge-mono { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+    .fz-badge-terracotta { background: var(--accent-terracotta-soft); color: var(--accent-terracotta); border: 1px solid var(--accent-terracotta-border); }
+    .fz-badge-sage { background: var(--accent-sage-soft); color: var(--accent-sage); border: 1px solid rgba(82, 115, 77, 0.25); }
+    .fz-badge-danger { background: var(--accent-danger-soft); color: var(--accent-danger); border: 1px solid rgba(194, 78, 66, 0.28); }
+
+    .fz-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.44rem 0.85rem;
+      border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-surface);
+      color: var(--text-primary); font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500;
+      cursor: pointer; transition: all var(--duration-fast) var(--ease-out-expo);
+    }
+    .fz-btn:hover:not(:disabled) { border-color: var(--accent-terracotta-border); background: var(--bg-elevated); transform: translateY(-1px); }
+    .fz-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .fz-btn-primary { background: var(--accent-terracotta); border-color: var(--accent-terracotta); color: var(--text-on-accent); }
+    .fz-btn-primary:hover:not(:disabled) { background: var(--accent-terracotta-hover); border-color: var(--accent-terracotta-hover); }
+
+    .sticky-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1.5rem; align-items: start; margin: 1.25rem 0; }
+    .sticky-pane { position: sticky; top: 1.5rem; }
+    @media (max-width: 860px) { .sticky-split { grid-template-columns: 1fr; } .sticky-pane { position: static; } }
+
+    .two-col-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1rem 0 1.25rem; }
+    .callout-note { background: var(--bg-elevated); border-left: 3px solid var(--accent-terracotta); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.15rem; margin: 1.15rem 0; }
+    .jit-concept { background: var(--accent-sand-soft); border: 1px solid rgba(217, 155, 82, 0.35); border-radius: var(--radius-md); padding: 0.95rem 1.15rem; margin: 0.95rem 0; font-size: 0.9rem; }
+    .jit-concept-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .duty-list { list-style: none; padding-left: 0; margin: 0.65rem 0; }
+    .duty-list li { padding: 0.34rem 0; border-bottom: 1px dashed var(--border-subtle); color: var(--text-primary); font-size: 0.9rem; }
+    .duty-list li:last-child { border-bottom: none; }
+
+    .term-chip {
+      display: inline-flex; align-items: center; gap: 0.2rem;
+      background: var(--bg-elevated); color: var(--text-primary);
+      border: 1px dashed var(--accent-terracotta-border); border-radius: 4px;
+      padding: 0.03em 0.38em; margin: 0 0.06em; font-family: var(--font-sans); font-size: 0.9em; font-weight: 500;
+      line-height: 1.35; cursor: pointer; vertical-align: baseline; transition: background-color 140ms ease;
+    }
+    .term-chip::after { content: "?"; font-family: var(--font-mono); font-size: 0.72em; color: var(--accent-terracotta); margin-left: 0.15rem; }
+    .term-chip:hover, .term-chip.open { background: var(--accent-terracotta-soft); border-style: solid; }
+    .term-popover {
+      display: block; margin: 0.55rem 0; padding: 0.65rem 0.9rem;
+      background: var(--bg-elevated); border-left: 3px solid var(--accent-sand);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.86rem; color: var(--text-primary);
+    }
+
+    .spec-table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+    .spec-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; text-align: left; }
+    .spec-table th { background: var(--bg-elevated); color: var(--text-primary); font-weight: 600; padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+    .spec-table td { padding: 0.62rem 0.85rem; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); vertical-align: top; }
+    .spec-table tr:last-child td { border-bottom: none; }
+
+    .deep-dive { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin: 0.9rem 0; }
+    .deep-dive summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--text-primary); list-style: none; display: flex; align-items: center; gap: 0.5rem; }
+    .deep-dive summary::-webkit-details-marker { display: none; }
+    .deep-dive summary::before { content: "▸"; font-family: var(--font-mono); color: var(--accent-terracotta); transition: transform 150ms ease; }
+    .deep-dive[open] summary::before { content: "▾"; }
+    .deep-dive-body { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); font-size: 0.89rem; color: var(--text-secondary); }
+    .deep-dive-body p:last-child { margin-bottom: 0; }
+
+    .causal-chain { display: flex; align-items: stretch; gap: 0.45rem; flex-wrap: wrap; margin: 1rem 0 1.25rem; }
+    .causal-step { flex: 1; min-width: 140px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.7rem 0.85rem; }
+    .causal-step-tag { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-terracotta); font-weight: 600; display: block; margin-bottom: 0.2rem; }
+    .causal-step-title { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.24rem; }
+    .causal-step-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.65; margin: 0; }
+    .causal-arrow { display: flex; align-items: center; color: var(--accent-terracotta); font-family: var(--font-mono); font-weight: 600; }
+    @media (max-width: 680px) { .causal-arrow { display: none; } }
+
+    .sandbox-guide {
+      background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--accent-terracotta); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 0.78rem 1rem; margin-bottom: 1rem; font-size: 0.86rem; color: var(--text-secondary);
+    }
+    .sandbox-guide-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; font-size: 0.86rem; }
+    .sandbox-guide ol { margin: 0; padding-left: 1.25rem; }
+    .sandbox-guide li { margin-bottom: 0.24rem; line-height: 1.65; }
+    .sandbox-guide li:last-child { margin-bottom: 0; }
+
+    .code-walkthrough { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-code); margin: 1rem 0; }
+    .code-topbar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding: 0.55rem 0.9rem; background: var(--bg-elevated); border-bottom: 1px solid var(--border-subtle); }
+    .code-actions { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+    .code-pre { margin: 0; padding: 0.75rem 0; overflow-x: auto; max-height: 460px; overflow-y: auto; line-height: 1.58; tab-size: 2; }
+    .code-line { display: block; padding: 0 1rem 0 0; border-left: 3px solid transparent; transition: background-color 140ms ease; }
+    .code-line .ln { display: inline-block; width: 3.1rem; padding-right: 0.85rem; text-align: right; color: var(--text-muted); user-select: none; font-size: 0.76rem; }
+    .code-line.has-annot { cursor: pointer; }
+    .code-line.has-annot .ln { color: var(--accent-terracotta); font-weight: 600; }
+    .code-line.has-annot:hover { background: var(--bg-elevated); }
+    .code-line.highlight { background: var(--accent-terracotta-soft); border-left-color: var(--accent-terracotta); }
+    .code-line.focus-pulse { background: var(--accent-sand-soft); border-left-color: var(--accent-sand); }
+    .code-line.is-collapsed-line { display: none; }
+
+    .tok-kw { color: var(--syn-kw); font-weight: 500; }
+    .tok-str { color: var(--syn-str); }
+    .tok-num { color: var(--syn-num); }
+    .tok-com { color: var(--syn-com); font-style: italic; }
+    .tok-fn { color: var(--syn-fn); }
+    .tok-tag { color: var(--syn-tag); }
+
+    .annot-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.75rem 0; }
+    .annot-item {
+      display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);
+      background: var(--bg-surface); cursor: pointer; transition: all var(--duration-fast) var(--ease-out-expo);
+    }
+    .annot-item:hover, .annot-item.active { border-color: var(--accent-terracotta); background: var(--accent-terracotta-soft); }
+    .annot-item p { margin: 0; font-size: 0.88rem; color: var(--text-primary); }
+
+    .terminal-sim { background: var(--bg-terminal); color: #E5E3DE; border-radius: var(--radius-md); overflow: hidden; border: 1px solid #302E2B; margin: 1rem 0; }
+    .terminal-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.55rem 0.9rem; background: #23211F; border-bottom: 1px solid #302E2B; flex-wrap: wrap; }
+    .terminal-dots { display: flex; gap: 0.38rem; }
+    .terminal-dots span { width: 9px; height: 9px; border-radius: 50%; background: #4A4742; }
+    .terminal-body { padding: 0.95rem 1.1rem; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+    .term-cmd { color: #E5B47A; margin-bottom: 0.35rem; }
+    .term-out { color: #D4D1CA; }
+
+    .tree-root, .tree-children { list-style: none; padding-left: 0; margin: 0; }
+    .tree-children { padding-left: 1.25rem; border-left: 1px dashed var(--border-strong); margin-left: 0.55rem; }
+    .tree-item.collapsed > .tree-children { display: none; }
+    .tree-row { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.28rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer; }
+    .tree-row:hover { background: var(--bg-elevated); }
+    .tree-caret { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-terracotta); width: 0.9rem; }
+
+    /* ==========================================================================
+       7. [项目专属样式区] — Zotero in AG 专属样式
+       ========================================================================== */
+    .topo-node.active rect { stroke: var(--accent-terracotta); stroke-width: 2.2; }
+    .sandbox-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .sandbox-tab.active { background: var(--accent-terracotta); color: var(--text-on-accent); border-color: var(--accent-terracotta); }
+    .sandbox-panel { display: none; }
+    .sandbox-panel.active { display: block; }
+    .sim-controls { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.85rem; }
+    .sim-input { flex: 1; min-width: 220px; padding: 0.5rem 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.84rem; }
+    .sim-select { padding: 0.48rem 0.7rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans); font-size: 0.84rem; }
+    .shield-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 0.65rem; margin: 0.85rem 0; }
+    .shield-stage { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.65rem 0.8rem; font-size: 0.82rem; }
+    .shield-stage.pass { border-color: var(--accent-sage); background: var(--accent-sage-soft); }
+    .shield-stage.block { border-color: var(--accent-danger); background: var(--accent-danger-soft); }
+    .sticky-card { cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
+    .sticky-card.active { border-color: var(--accent-terracotta); background: var(--accent-terracotta-soft); }
+  </style>
+</head>
+<body data-project-slug="zotero-in-ag">
+
+  <header class="mobile-topbar">
+    <button class="fz-btn" onclick="fzToggleMobileNav()">☰ 目录导航</button>
+    <strong style="font-family:var(--font-serif); font-size:0.95rem;">Zotero in AG</strong>
+    <button class="fz-btn" onclick="toggleTheme()">◐ 主题</button>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar">
+      <div>
+        <span class="brand-eyebrow">FROM-ZERO · 中型真实仓库拆解</span>
+        <div class="brand-title">Zotero in AG (v2.4)</div>
+        <p class="brand-sub">MCP 工具通道 + FastAPI 侧边栏 + SQLite 无锁只读与安全写入架构</p>
+        <nav aria-label="章节目录">
+          <ul class="nav-list" id="sidebar-nav"></ul>
+        </nav>
+      </div>
+
+      <div>
+        <div class="progress-box">
+          <div class="progress-header">
+            <span>实操完成进度</span>
+            <span id="progress-label">0 / 0 步</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="fz-btn" onclick="toggleTheme()" style="flex:1; justify-content:center;">◐ 深浅主题</button>
+          <button class="fz-btn" onclick="resetProgress()" title="清空本地完成记录">↺ 重置</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-canvas" id="main-canvas">
+      <!-- 章节 01：双通道架构与读写分离边界 -->
+      <section class="section-block" id="sec-architecture" data-num="01" data-nav="双通道架构与工程地图">
+        <span class="section-eyebrow">01 / 先看懂这个 25 文件仓库的“两条腿”和“读写分离”</span>
+        <h1>Zotero in AG：把文献库原生搬进 Antigravity</h1>
+        <p><strong>先从零理解它到底解决了什么痛点：</strong>平时读论文时，Zotero 文献库在桌面上，PDF 在文件夹里，AI 助手在编辑器里，三者割裂。<code>zotero-in-ag</code> 要做的，就是既让 <strong>AI 助手能直接查你的文献、读 PDF、帮你写笔记</strong>，又让你能在 <strong>右侧边栏里像原生软件一样刷分类、看 PDF、划线翻译</strong>。</p>
+        <p>但这里有一个致命难题：<strong>如果 Zotero 桌面端正在开着，我们用 Python 直接去改写它的数据库文件 <code>zotero.sqlite</code>，极容易把用户的文献库写坏甚至报错锁死！</strong>因此整个项目确立了最核心的架构铁律——<strong>双通道接入 + 严格读写分离</strong>：</p>
+        <ul class="duty-list">
+          <li><strong>通道 1（给 AI 用的 <button class="term-chip" data-term-tip="MCP（Model Context Protocol，模型上下文协议）是一套标准接头，让 AI 助手可以通过命令行标准输入输出（stdio）直接调用你写的 Python 工具函数。">MCP 通道</button>）</strong>：通过 <code>src/mcp_server/server.py</code> 暴露 6 个工具给 AI 调用。</li>
+          <li><strong>通道 2（给人看的 <button class="term-chip" data-term-tip="Sidecar（边车进程）是指跟随主程序悄悄在后台启动的本地小服务。本项目用 Python FastAPI 在本机开一个网页服务，嵌入到 Antigravity 右侧副面板（Aux Pane）里。">Sidecar 侧边栏</button>）</strong>：通过 <code>src/sidecar/server.py</code> 启动本地网页服务，渲染文献列表与离线 <button class="term-chip" data-term-tip="PDF.js 是 Mozilla 开源的网页 PDF 渲染引擎，加上 CMap 字体映射文件后，不用联网也能清晰显示中文论文。">PDF.js 阅读器</button>。</li>
+          <li><strong>读写分离铁律</strong>：查文献、读批注时，只用只读模式悄悄读 <code>zotero.sqlite</code>；要新建富文本笔记时，绝不硬写数据库，而是发 HTTP 请求给 Zotero 自带的 <button class="term-chip" data-term-tip="Zotero 桌面端启动后，会在你电脑本机 127.0.0.1 的 23119 端口开一个内置服务接口（Local API）。让 Zotero 自己去存笔记，既安全又能同步到云端。">Local API（23119 端口）</button>，请 Zotero 自己安全落盘。</li>
+        </ul>
+
+        <div class="fz-card">
+          <div class="fz-card-header">
+            <span class="fz-badge-mono">四域交互拓扑图（真实源码结构）</span>
+            <span class="fz-hint">点击下方任意模块框，查看它负责的核心文件与运行边界</span>
+          </div>
+          <svg viewBox="0 0 780 235" style="width:100%; height:auto; display:block;" role="img" aria-label="Zotero in AG 双通道四域架构拓扑图">
+            <defs>
+              <marker id="zag-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--accent-terracotta)" />
+              </marker>
+            </defs>
+            <g class="topo-node active" style="cursor:pointer;" onclick="selectZagNode('host', this)">
+              <rect x="18" y="64" width="160" height="106" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="98" y="96" text-anchor="middle" fill="var(--text-primary)" font-size="13" font-weight="600">Antigravity 宿主</text>
+              <text x="98" y="118" text-anchor="middle" fill="var(--text-muted)" font-size="10.5">AI 对话框 + 右侧副面板</text>
+              <text x="98" y="142" text-anchor="middle" fill="var(--accent-terracotta)" font-size="10" font-family="var(--font-mono)">plugin.json</text>
+            </g>
+
+            <line x1="178" y1="92" x2="246" y2="58" stroke="var(--accent-terracotta)" stroke-width="2" marker-end="url(#zag-arrow)" />
+            <text x="210" y="62" text-anchor="middle" fill="var(--accent-terracotta)" font-size="10" font-weight="600">stdio 管道</text>
+
+            <line x1="178" y1="142" x2="246" y2="176" stroke="var(--accent-terracotta)" stroke-width="2" marker-end="url(#zag-arrow)" />
+            <text x="210" y="176" text-anchor="middle" fill="var(--accent-terracotta)" font-size="10" font-weight="600">HTTP 网页</text>
+
+            <g class="topo-node" style="cursor:pointer;" onclick="selectZagNode('mcp', this)">
+              <rect x="250" y="18" width="175" height="82" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="337" y="48" text-anchor="middle" fill="var(--text-primary)" font-size="12.5" font-weight="600">MCP 工具服务</text>
+              <text x="337" y="68" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="var(--font-mono)">src/mcp_server/server.py</text>
+              <text x="337" y="84" text-anchor="middle" fill="var(--text-muted)" font-size="10">给 AI 用的 6 个原子工具</text>
+            </g>
+
+            <g class="topo-node" style="cursor:pointer;" onclick="selectZagNode('sidecar', this)">
+              <rect x="250" y="134" width="175" height="82" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="337" y="164" text-anchor="middle" fill="var(--text-primary)" font-size="12.5" font-weight="600">FastAPI Sidecar</text>
+              <text x="337" y="184" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="var(--font-mono)">src/sidecar/server.py</text>
+              <text x="337" y="200" text-anchor="middle" fill="var(--text-muted)" font-size="10">界面 + PDF 流 + 翻译接口</text>
+            </g>
+
+            <line x1="425" y1="60" x2="486" y2="104" stroke="var(--border-strong)" stroke-width="1.8" marker-end="url(#zag-arrow)" />
+            <line x1="425" y1="175" x2="486" y2="132" stroke="var(--border-strong)" stroke-width="1.8" marker-end="url(#zag-arrow)" />
+
+            <g class="topo-node" style="cursor:pointer;" onclick="selectZagNode('core', this)">
+              <rect x="490" y="64" width="272" height="106" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="626" y="94" text-anchor="middle" fill="var(--text-primary)" font-size="13" font-weight="600">共享业务与核心驱动层</text>
+              <text x="626" y="116" text-anchor="middle" fill="var(--text-muted)" font-size="10.5">只读 SQLite · 安全路径校验 · Local API 写笔记</text>
+              <text x="626" y="140" text-anchor="middle" fill="var(--accent-sage)" font-size="10" font-family="var(--font-mono)">src/services/ + src/core/ + src/domain/</text>
+            </g>
+          </svg>
+          <div id="zag-topo-drawer" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle);" aria-live="polite"></div>
+        </div>
+
+        <div class="fz-card">
+          <div class="fz-card-header">
+            <span class="fz-badge-mono">中型仓库（25+ 源码文件）聚类目录树</span>
+            <span class="fz-hint">点击文件夹展开/收起；下文将沿着红色主干链路精讲核心文件</span>
+          </div>
+          <ul class="tree-root">
+            <li class="tree-item">
+              <div class="tree-row" onclick="fzToggleTree(this)"><span class="tree-caret">▾</span><code>zotero_in_ag/</code><span class="fz-hint">插件根目录</span></div>
+              <ul class="tree-children">
+                <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>plugin.json</code> / <code>mcp_config.json</code> / <code>sidecars/zotero-pane/sidecar.json</code><span class="fz-hint">告诉 Antigravity 如何启动 MCP 与侧边栏</span></div></li>
+                <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>skills/zotero/SKILL.md</code><span class="fz-hint">教会 Agent 何时输出侧边栏链接以及怎样配合 6 个工具精读</span></div></li>
+                <li class="tree-item">
+                  <div class="tree-row" onclick="fzToggleTree(this)"><span class="tree-caret">▾</span><code>src/core/</code><span class="fz-hint">最底层基础设施（主干精讲重点）</span></div>
+                  <ul class="tree-children">
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>config.py</code><span class="fz-hint">跨平台自动探测 Zotero 数据目录与注册表</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>db.py</code><span class="fz-hint">只读 WAL 与 Windows immutable=1 无锁回退驱动</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>storage.py</code><span class="fz-hint">严格防路径穿越的 PDF 附件定位器</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>pdf_extractor.py</code><span class="fz-hint">基于 pypdf 提取指定页码文字供 Agent 精读</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>zotero_api.py</code><span class="fz-hint">调用 23119 Local API 安全写入富文本笔记</span></div></li>
+                  </ul>
+                </li>
+                <li class="tree-item">
+                  <div class="tree-row" onclick="fzToggleTree(this)"><span class="tree-caret">▾</span><code>src/services/</code> &amp; <code>src/domain/</code><span class="fz-hint">安全安检与统一数据模型</span></div>
+                  <ul class="tree-children">
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>models.py</code><span class="fz-hint">Pydantic 强类型模型（校验前端传来的参数结构）</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>validation.py</code><span class="fz-hint">8 位 Key 校验 + 5 层防 SSRF 云元数据攻击护盾</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>annotation_service.py</code><span class="fz-hint">合并原生 SQLite 批注与本地原子缓存批注</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>catalog_service.py</code> / <code>document_service.py</code> / <code>translation_service.py</code><span class="fz-hint">目录、PDF 路径与大模型翻译调度</span></div></li>
+                  </ul>
+                </li>
+                <li class="tree-item collapsed">
+                  <div class="tree-row" onclick="fzToggleTree(this)"><span class="tree-caret">▸</span><code>src/sidecar/static/</code> &amp; <code>scripts/</code> &amp; <code>tests/</code><span class="fz-hint">点击展开前端 8 个 ESM 模块、打包脚本与脱机夹具测试</span></div>
+                  <ul class="tree-children">
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>static/js/viewer/shield.js</code> 等 8 个 ESM 模块<span class="fz-hint">PDF.js 懒加载、Zotero 同款选区护盾与 8 色批注层</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>scripts/bundle_frontend.py</code><span class="fz-hint">把 8 个模块打包为单文件 IIFE app.js 防止 Webview 沙箱报错</span></div></li>
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>tests/fixtures/mock_zotero.py</code> + <code>run_all.py</code><span class="fz-hint">合成假数据库和假 PDF，不装 Zotero 也能跑通全部测试</span></div></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 章节 02：精读一条论文时的真实数据流与契约表 -->
+      <section class="section-block" id="sec-flow" data-num="02" data-nav="精读闭环与双端契约">
+        <span class="section-eyebrow">02 / 一条“检索 → 读 PDF → 存笔记”完整闭环</span>
+        <h2>从你向 Agent 提问到 Zotero 里多出笔记，中间发生了什么？</h2>
+        <p>把两个入口拆开来看很容易迷路，把它们放到“读一篇论文”的真实任务里，所有文件是如何串起来的就一目了然了：</p>
+
+        <div class="causal-chain">
+          <div class="causal-step">
+            <span class="causal-step-tag">01 · 搜文献</span>
+            <div class="causal-step-title">只读数据库检索</div>
+            <p class="causal-step-desc">Agent 调用 <code>zotero_search</code>，或侧边栏请求 <code>/api/items</code>，由 <code>ZoteroDB</code> 用只读方式查出 8 位唯一编号（Key）。</p>
+          </div>
+          <div class="causal-arrow">→</div>
+          <div class="causal-step">
+            <span class="causal-step-tag">02 · 验门牌</span>
+            <div class="causal-step-title">8 位 Key + 沙箱检查</div>
+            <p class="causal-step-desc"><code>validation.py</code> 检查编号严格符合 8 位字母数字，再由 <code>StorageResolver</code> 确认 PDF 路径没有逃出 <code>storage/</code> 目录。</p>
+          </div>
+          <div class="causal-arrow">→</div>
+          <div class="causal-step">
+            <span class="causal-step-tag">03 · 读内容</span>
+            <div class="causal-step-title">抽文本或流式渲染</div>
+            <p class="causal-step-desc">AI 通过 <code>pypdf</code> 每次最多抽 10 页文字精读；侧边栏通过 <code>Accept-Ranges</code> 分段流加载 PDF 渲染画面。</p>
+          </div>
+          <div class="causal-arrow">→</div>
+          <div class="causal-step">
+            <span class="causal-step-tag">04 · 写回库</span>
+            <div class="causal-step-title">调 23119 接口存笔记</div>
+            <p class="causal-step-desc"><code>ZoteroAPIClient</code> 先确认 Zotero 在运行，再把 Markdown 转成富文本 HTML 寄给 <code>23119</code> 端口，由 Zotero 安全保存。</p>
+          </div>
+        </div>
+
+        <div class="spec-table-wrap">
+          <table class="spec-table">
+            <thead>
+              <tr><th>通道类型</th><th>核心工具 / 接口路由</th><th>底层调用谁</th><th>为什么要这样设计边界</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>MCP 工具</strong></td><td><code>zotero_search</code> / <code>zotero_get_item</code></td><td><code>CatalogService → ZoteroDB</code></td><td>给 AI 返回紧凑清晰的 Markdown 摘要，节省大模型 <button class="term-chip" data-term-tip="Token 是大模型计量阅读长度的单位，大概 1 个英文单词或 1~2 个汉字算 1~2 个 Token。返回精炼文本能省下大量上下文额度。">Token 额度</button></td></tr>
+              <tr><td><strong>MCP 工具</strong></td><td><code>zotero_read_pdf</code></td><td><code>DocumentService → pypdf</code></td><td>单次强制限制最多抽 10 页，防止整篇百页 PDF 一次塞爆 AI 对话记忆</td></tr>
+              <tr><td><strong>MCP / HTTP</strong></td><td><code>zotero_add_note</code> / <code>POST /api/note</code></td><td><code>ZoteroAPIClient → 23119</code></td><td>自动区分“普通论文条目”与“独立 PDF 文档”，后者会自动归档到对应分类文件夹</td></tr>
+              <tr><td><strong>Sidecar HTTP</strong></td><td><code>GET /api/pdf/{attachment_key}</code></td><td><code>StorageResolver → FileResponse</code></td><td>必须先过 8 位 Key 校验，并且绝不接受网页传绝对路径，防止恶意读取系统硬盘文件</td></tr>
+              <tr><td><strong>Sidecar HTTP</strong></td><td><code>POST /api/annotations/{item_key}</code></td><td><code>AnnotationService → JSON 缓存</code></td><td>浏览器里新建的高亮/下划线写到本地独立 JSON，绝不修改 Zotero 原库</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 章节 03：项目原生双引擎可操作微沙盘 -->
+      <section class="section-block" id="sec-sandbox" data-num="03" data-nav="互动沙盘：无锁回退与安全安检">
+        <span class="section-eyebrow">03 / 亲手模拟项目最核心的两个底层机制</span>
+        <h2>互动微沙盘：SQLite 无锁回退与安全安检门</h2>
+        <p>把项目最难懂的两处实战逻辑搬进了浏览器里：左侧标签页模拟 <code>db.py</code> 与 <code>zotero_api.py</code> 的<strong>无锁连接回退与笔记载荷生成</strong>；右侧标签页直接运行与 <code>validation.py</code> 完全同构的<strong>路径遍历 + 5 层 SSRF 安全拦截</strong>逻辑。</p>
+
+        <div class="fz-card">
+          <div class="sandbox-tabs">
+            <button class="fz-btn sandbox-tab active" onclick="switchZagTab('db', this)">实验 A：SQLite 无锁回退 &amp; 写笔记载荷</button>
+            <button class="fz-btn sandbox-tab" onclick="switchZagTab('sec', this)">实验 B：8 位 Key 与 5 层 SSRF 安检门</button>
+          </div>
+
+          <!-- 实验 A -->
+          <div class="sandbox-panel active" id="panel-db">
+            <div class="sandbox-guide">
+              <div class="sandbox-guide-title">怎么操作实验 A（观察 Windows 文件锁回退与独立 PDF 归档差异）：</div>
+              <ol>
+                <li><strong>模拟只读连接：</strong>在下方的「Zotero 数据库锁状态」下拉框切换成<strong>「Windows 独占文件锁」</strong>，点击<strong>「1. 模拟读取文献库」</strong>，观察下方黑色终端如何先尝试 <code>mode=ro</code> 失败 2 次，然后自动降级为 <code>mode=ro&amp;immutable=1</code> 绕过文件锁！</li>
+                <li><strong>对比写笔记分支：</strong>切换「目标条目类型」为<strong>「独立 PDF 文档」</strong> vs <strong>「标准文献条目」</strong>，点击<strong>「2. 模拟写入精读笔记」</strong>，看发往 <code>23119</code> 端口的 JSON 数据结构有何不同（<code>collections</code> vs <code>parentItem</code>）。</li>
+                <li><strong>测试客户端未启动保护：</strong>把「Zotero 桌面端状态」切为「未运行」，再点写入笔记，验证为何能保护数据库不被损坏。</li>
+              </ol>
+            </div>
+
+            <div class="sim-controls">
+              <select id="zag-lock-mode" class="sim-select">
+                <option value="wal">数据库状态：正常 WAL 并发读写</option>
+                <option value="winlock">数据库状态：Windows 独占文件锁 (locked)</option>
+              </select>
+              <select id="zag-item-type" class="sim-select">
+                <option value="article">目标类型：标准文献条目 (Key: DQGFST6U)</option>
+                <option value="standalone">目标类型：独立 PDF 文档 (无父条目，属于分类 C1)</option>
+              </select>
+              <select id="zag-app-running" class="sim-select">
+                <option value="yes">Zotero 桌面端：正在运行 (23119 可达)</option>
+                <option value="no">Zotero 桌面端：未启动 (23119 无响应)</option>
+              </select>
+            </div>
+            <div class="sim-controls">
+              <button class="fz-btn fz-btn-primary" onclick="runZagDbSim()">1. 模拟读取文献库 (db.py)</button>
+              <button class="fz-btn" onclick="runZagApiSim()">2. 模拟写入精读笔记 (zotero_api.py)</button>
+            </div>
+
+            <div class="terminal-sim" style="margin-bottom:0;">
+              <div class="terminal-bar">
+                <span style="font-family:var(--font-mono); font-size:0.74rem; color:#E5B47A;">Python 运行追踪与 JSON 请求体</span>
+                <span class="fz-hint" id="zag-db-badge" style="color:#D4D1CA;">等待触发</span>
+              </div>
+              <div class="terminal-body" id="zag-db-log">选择上方状态后点击「1. 模拟读取文献库」或「2. 模拟写入精读笔记」。</div>
+            </div>
+          </div>
+
+          <!-- 实验 B -->
+          <div class="sandbox-panel" id="panel-sec">
+            <div class="sandbox-guide">
+              <div class="sandbox-guide-title">怎么操作实验 B（测试各种绕过攻击如何被 <code>validation.py</code> 拦截）：</div>
+              <ol>
+                <li><strong>测试 Key 防线：</strong>在「附件 Key 输入框」点快捷按钮填入合法 Key <code>DQGFST6U</code> 或攻击路径 <code>../../etc</code>，点击<strong>「运行安全安检」</strong>。</li>
+                <li><strong>测试 5 层 SSRF 防线：</strong>点快捷按钮把大模型接口地址切换成<strong>「十六进制云元数据 0xa9fe01a9」</strong>或<strong>「十进制整数 2852039166」</strong>，看看普通黑名单为何会被绕过，而下面 5 道关卡怎样把它当场拦下！</li>
+              </ol>
+            </div>
+
+            <div class="sim-controls">
+              <input id="zag-key-in" class="sim-input" type="text" value="../../etc" placeholder="输入 8 位 Key（如 DQGFST6U）" />
+              <button class="fz-btn" onclick="setSecPreset('DQGFST6U', 'https://api.deepseek.com')">正常组合</button>
+              <button class="fz-btn" onclick="setSecPreset('../../etc', 'http://169.254.169.254/latest')">路径穿越 + 标准云 IP</button>
+              <button class="fz-btn" onclick="setSecPreset('A1B2C3D4', 'http://0xa9fe01a9/latest')">十六进制整数 IP 绕过</button>
+              <button class="fz-btn" onclick="setSecPreset('A1B2C3D4', 'http://2852039166/v1')">十进制整数 IP 绕过</button>
+            </div>
+            <div class="sim-controls">
+              <input id="zag-url-in" class="sim-input" type="text" value="http://0xa9fe01a9/latest" placeholder="输入自定义翻译大模型 Base URL..." />
+              <button class="fz-btn fz-btn-primary" onclick="runZagSecuritySim()">运行安全安检</button>
+            </div>
+
+            <div class="shield-grid" id="zag-shield-stages"></div>
+            <div class="terminal-sim" style="margin-bottom:0;">
+              <div class="terminal-bar"><span style="font-family:var(--font-mono); font-size:0.74rem; color:#E5B47A;">validation.py 判定结果</span></div>
+              <div class="terminal-body" id="zag-sec-log">点击上方快捷场景或「运行安全安检」查看每道防线的拦截明细。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 章节 04：Sticky 原理深剖（原子缓存、前端打包与选区护盾） -->
+      <section class="section-block" id="sec-principles" data-num="04" data-nav="Sticky 原理：原子缓存与打包">
+        <span class="section-eyebrow">04 / 为什么工程上要多写这些“防崩代码”</span>
+        <h2>Sticky 深剖：原子写文件、前端单源打包与选区护盾</h2>
+        <p>点击左侧任意一条工程决策卡片，右侧固定图解面板会解释它解决的真实故障场景。</p>
+
+        <div class="sticky-split">
+          <div>
+            <div class="fz-card sticky-card active" onclick="selectZagPrinciple(0, this)">
+              <h4>1. 批注缓存为什么先写临时文件，再 <code>os.replace()</code>？</h4>
+              <p style="margin:0; font-size:0.9rem;">如果直接打开 <code>zotero_annotations_cache.json</code> 覆盖写入，写到一半电脑断电或程序强退，整个 JSON 文件就会残缺损坏，用户以前划的所有重点批注瞬间全丢！先写进临时文件再原子替换，就像“先在草稿纸抄完整份，再一瞬间把旧纸换掉”，保证文件要么是旧的完整版，要么是新的完整版。</p>
+            </div>
+            <div class="fz-card sticky-card" onclick="selectZagPrinciple(1, this)">
+              <h4>2. 为什么 8 个前端 ESM 模块要打包成单个 <code>app.js</code>？</h4>
+              <p style="margin:0; font-size:0.9rem;">开发时拆成 <code>shield.js</code>、<code>pdf_viewer.js</code> 等 8 个文件非常清爽；但 Antigravity 侧边栏运行在 <button class="term-chip" data-term-tip="Electron Webview 是编辑器内置的精简浏览器窗口，在受限协议或静态托管环境下，多文件 ESM import 容易遇到路径解析或缓存不同步问题。">Electron Webview 沙箱</button>中。<code>scripts/bundle_frontend.py</code> 把 <code>import/export</code> 剥离后按依赖顺序拼进一个立即执行函数（IIFE）<code>app.js</code>，一次加载即生效且不会污染全局窗口变量。</p>
+            </div>
+            <div class="fz-card sticky-card" onclick="selectZagPrinciple(2, this)">
+              <h4>3. 为什么 PDF 划词容易“突然全选整页”？选区护盾怎么修？</h4>
+              <p style="margin:0; font-size:0.9rem;">PDF 里的文字并不是连续段落，而是一个个悬浮的绝对定位 <code>&lt;span&gt;</code>。鼠标稍微滑到行尾空白或双栏中缝，浏览器就找不到当前文字节点，选区会瞬间跳到页面末尾。<code>shield.js</code> 先按垂直高度（<code>clientY</code>）锁定鼠标所在行，再分栏过滤并投影到最近字符，彻底消除了跳选闪烁。</p>
+            </div>
+
+            <details class="deep-dive">
+              <summary>底层语法补充：为什么 FastAPI 接口里要写 <code>await asyncio.to_thread(...)</code>？</summary>
+              <div class="deep-dive-body">
+                <p>FastAPI 是异步并发框架（就像一个服务员同时照看 10 桌客人），而 Python 自带的 <code>sqlite3</code> 查询是同步阻塞的。如果直接在异步函数里查大数据库，整个服务员会被卡住，期间所有前端请求都得干等。<code>asyncio.to_thread</code> 把耗时 SQL 扔进后台线程池去跑，主线程立刻腾出手响应别的请求。</p>
+              </div>
+            </details>
+          </div>
+
+          <div class="sticky-pane">
+            <div class="fz-card" id="zag-principle-stage"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 章节 05：主干核心源码高密度双向精讲 -->
+      <section class="section-block" id="sec-code" data-num="05" data-nav="主干核心源码精讲">
+        <span class="section-eyebrow">05 / 精选 4 个真·核心文件片段（支持代码 ↔ 注解双向点击联动）</span>
+        <h2>沿着真实主干链路读懂关键代码</h2>
+        <p>对于 25 个以上文件的真实项目，最忌讳把所有文件一股脑全贴出来。下面精挑出串起“无锁读库 → 安全定位 PDF → 防 SSRF 校验 → 写回 Zotero 笔记”的 <strong>4 个真实核心源码文件</strong>。点击任意注解卡片或带陶土红行号的代码行，即可双向定位。</p>
+
+        <!-- 文件 1：db.py -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">核心 1 · 无锁只读驱动</span><code>src/core/db.py</code>（连接策略节选）
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="zag-step-1" /><span>标记已读懂本文件</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="py" data-highlight="7,12,24" data-focus="6-28">
+              <div class="code-topbar">
+                <code>src/core/db.py</code>
+                <div class="code-actions">
+                  <button class="fz-btn" data-toggle-view>仅看核心行 (L6-L28)</button>
+                  <button class="fz-btn" data-copy-code>复制代码</button>
+                </div>
+              </div>
+              <pre class="code-pre"><code>import time
+import sqlite3
+from contextlib import contextmanager
+
+@contextmanager
+def _get_connection(self):
+    conn = None
+    uri_ro = f"{self.db_path.as_uri()}?mode=ro"
+    for attempt in range(2):
+        try:
+            conn = sqlite3.connect(uri_ro, uri=True, timeout=0.6, isolation_level=None)
+            conn.execute("PRAGMA busy_timeout = 600;")
+            conn.row_factory = sqlite3.Row
+            conn.execute("SELECT 1 FROM collections LIMIT 1;")
+            break
+        except sqlite3.OperationalError as e:
+            if conn:
+                try: conn.close()
+                except Exception: pass
+                conn = None
+            if "locked" in str(e).lower() and attempt < 1:
+                time.sleep(0.1)
+                continue
+            break
+
+    if conn is None:
+        uri_immutable = f"{self.db_path.as_uri()}?mode=ro&amp;immutable=1"
+        conn = sqlite3.connect(uri_immutable, uri=True, timeout=5.0, isolation_level=None)
+        conn.row_factory = sqlite3.Row
+
+    try:
+        yield conn
+    finally:
+        if conn: conn.close()</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="5-6,32-34">
+                <span class="fz-badge-terracotta">L5-L6, L32-L34</span>
+                <p><strong>语法 <code>@contextmanager</code> 与 <code>yield</code>：</strong>这是 Python 的上下文管理器写法。外层写 <code>with self._get_connection() as conn:</code> 时，执行到 <code>yield conn</code> 把连接借出去用，用完无论成功还是报错，<code>finally</code> 都会自动关闭连接防止内存泄漏。</p>
+              </div>
+              <div class="annot-item" data-lines="8,11-14">
+                <span class="fz-badge-terracotta">L8, L11-L14</span>
+                <p><strong>首选 <code>mode=ro</code> 实时感知 WAL：</strong><code>self.db_path.as_uri()</code> 把本地路径转成 <code>file:///...</code> URI，配合 <code>uri=True</code> 和 <code>mode=ro</code>，就能在 Zotero 开着时实时读到最新增删的文献；第 14 行执行一句轻量查询探活，确认没被锁死。</p>
+              </div>
+              <div class="annot-item" data-lines="26-29">
+                <span class="fz-badge-terracotta">L26-L29</span>
+                <p><strong>Windows 独占锁保底回退：</strong>如果重试两次仍被 Windows 锁住（<code>conn is None</code>），立刻切到 <code>mode=ro&amp;immutable=1</code>，告诉 SQLite “别去检查锁文件了，直接当静态只读文件读”，彻底解决与 Zotero 桌面端的冲突。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 文件 2：storage.py -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">核心 2 · 防路径穿越 PDF 定位</span><code>src/core/storage.py</code>
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="zag-step-2" /><span>标记已读懂本文件</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="py" data-highlight="7,11,14,29" data-focus="6-31">
+              <div class="code-topbar">
+                <code>src/core/storage.py</code>
+                <div class="code-actions">
+                  <button class="fz-btn" data-toggle-view>仅看核心行 (L6-L31)</button>
+                  <button class="fz-btn" data-copy-code>复制代码</button>
+                </div>
+              </div>
+              <pre class="code-pre"><code>import re
+from pathlib import Path
+from typing import Optional
+
+def resolve_pdf_path(self, attachment_key: str, raw_path: Optional[str] = None) -> Optional[Path]:
+    if not attachment_key or not re.match(r"^[A-Za-z0-9]{8}$", attachment_key):
+        return None
+
+    storage_root = self.storage_dir.resolve()
+    folder = (self.storage_dir / attachment_key).resolve()
+
+    try:
+        folder.relative_to(storage_root)
+    except ValueError:
+        return None
+
+    if folder.exists() and folder.is_dir():
+        if raw_path and raw_path.startswith("storage:"):
+            fname = raw_path[len("storage:"):].strip()
+            cand = (folder / fname).resolve()
+            try:
+                cand.relative_to(storage_root)
+                if cand.exists() and cand.is_file() and cand.suffix.lower() == ".pdf":
+                    return cand
+            except ValueError:
+                pass
+        pdf_files = list(folder.glob("*.pdf"))
+        if pdf_files:
+            return pdf_files[0].resolve()
+
+    # 仅当数据库提供 Linked File 绝对路径时生效，Web 端绝不传入 raw_path
+    if raw_path and not raw_path.startswith("storage:"):
+        abs_cand = Path(raw_path).resolve()
+        if abs_cand.exists() and abs_cand.is_file() and abs_cand.suffix.lower() == ".pdf":
+            return abs_cand
+    return None</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="6-7">
+                <span class="fz-badge-terracotta">L6-L7</span>
+                <p><strong>正则 <code>^[A-Za-z0-9]{8}$</code> 门禁：</strong><code>^</code> 表示开头，<code>$</code> 表示结尾，中间只允许刚好 8 位字母或数字。像 <code>../../etc</code> 这种包含斜杠或点号的恶意输入第一关就会被直接打回 <code>None</code>。</p>
+              </div>
+              <div class="annot-item" data-lines="9-15">
+                <span class="fz-badge-terracotta">L9-L15</span>
+                <p><strong><code>.resolve()</code> + <code>.relative_to()</code> 双保险：</strong><code>.resolve()</code> 会把路径里的 <code>..</code> 和软链接全部展开成真实绝对路径；再用 <code>relative_to(storage_root)</code> 检查它是不是还在 <code>storage</code> 根目录里面，一旦逃出就会抛出 <code>ValueError</code> 被拦截。</p>
+              </div>
+              <div class="annot-item" data-lines="31-35">
+                <span class="fz-badge-terracotta">L31-L35</span>
+                <p><strong>外链 PDF 的信任边界：</strong>有些 Zotero 用户习惯“链接文件”而非复制进 <code>storage/</code>。代码只允许从只读 SQLite 内部查出来的 <code>raw_path</code> 走这条分支，而网页 HTTP 接口 <code>/api/pdf/{key}</code> 绝不传 <code>raw_path</code>，守住了外部请求的安全边界。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 文件 3：validation.py -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">核心 3 · 5 层防 SSRF 校验</span><code>src/services/validation.py</code>（核心节选）
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="zag-step-3" /><span>标记已读懂本文件</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="py" data-highlight="5,9,17,22" data-focus="1-26">
+              <div class="code-topbar">
+                <code>src/services/validation.py</code>
+                <div class="code-actions">
+                  <button class="fz-btn" data-toggle-view>仅看核心行 (L1-L26)</button>
+                  <button class="fz-btn" data-copy-code>复制代码</button>
+                </div>
+              </div>
+              <pre class="code-pre"><code>def normalize_and_validate_chat_endpoint(base_url: Optional[str]) -> str:
+    url = (base_url or "").strip().rstrip("/")
+    if not url:
+        return "https://api.deepseek.com/v1/chat/completions"
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"不支持的协议 '{parsed.scheme}'")
+    hostname = (parsed.hostname or "").lower().strip()
+
+    # 第 1 层：直接拦截云平台元数据域名
+    if hostname in ("metadata.google.internal", "instance-data"):
+        raise ValueError("禁止访问链路本地/云平台元数据地址")
+
+    # 第 2 层：拦截 0xa9fe01a9（十六进制）或 2852039166（十进制整数）变形 IP
+    val = int(hostname, 16) if re.match(r"^0x[0-9a-f]+$", hostname) else (int(hostname) if hostname.isdigit() else None)
+    if val is not None and ipaddress.ip_address(val).is_link_local:
+        raise ValueError("禁止访问链路本地/云平台元数据地址")
+
+    # 第 3-4 层：标准 IPv4/IPv6 与 socket.inet_aton（防八进制/点分十六进制）
+    try:
+        if ipaddress.ip_address(hostname).is_link_local:
+            raise ValueError("禁止访问链路本地/云平台元数据地址")
+    except ValueError:
+        pass
+    try:
+        if ipaddress.ip_address(socket.inet_aton(hostname)).is_link_local:
+            raise ValueError("禁止访问链路本地/云平台元数据地址")
+    except Exception:
+        pass
+
+    return url if url.endswith("/chat/completions") else (f"{url}/chat/completions" if url.endswith("/v1") else f"{url}/v1/chat/completions")</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="5-7">
+                <span class="fz-badge-terracotta">L5-L7</span>
+                <p><strong>协议白名单：</strong>先用 <code>urlparse</code> 拆出协议头，只允许 <code>http</code> 和 <code>https</code>，直接封死 <code>file:///</code>、<code>ftp://</code> 等危险协议。</p>
+              </div>
+              <div class="annot-item" data-lines="14-17">
+                <span class="fz-badge-terracotta">L14-L17</span>
+                <p><strong>拆穿整数 IP 伪装：</strong><code>169.254.1.169</code> 等内网元数据 IP 换算成整数就是 <code>0xa9fe01a9</code> 或 <code>2852039166</code>，很多浏览器和系统底层会照样解析它！第 15-16 行把它转回整数 IP 对象，通过 <code>.is_link_local</code> 识破伪装。</p>
+              </div>
+              <div class="annot-item" data-lines="25-29">
+                <span class="fz-badge-terracotta">L25-L29</span>
+                <p><strong><code>socket.inet_aton</code> 兜底：</strong>即便遇到像 <code>0xa9.0xfe.0x01.0xa9</code> 这种点分十六进制或八进制写法，操作系统底层函数 <code>inet_aton</code> 也能把它还原成 4 字节真实 IP 再做判断。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 文件 4：zotero_api.py -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">核心 4 · 方案 A 写入 Zotero 笔记</span><code>src/core/zotero_api.py</code>（核心节选）
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="zag-step-4" /><span>标记已读懂本文件</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="py" data-highlight="2,8,14,20">
+              <div class="code-topbar">
+                <code>src/core/zotero_api.py</code>
+                <div class="code-actions">
+                  <button class="fz-btn" data-copy-code>复制代码</button>
+                </div>
+              </div>
+              <pre class="code-pre"><code>async def create_item_note_async(self, parent_item_key, note_title, note_markdown, tags=None, collection_keys=None):
+    if not await self.is_running_async():
+        return {"success": False, "error": "Zotero 桌面端当前未运行，请先启动 Zotero 客户端。"}
+
+    html_content = self._markdown_to_zotero_html(note_title, note_markdown)
+    note_item = {"itemType": "note", "note": html_content, "tags": [{"tag": t} for t in (tags or ["agent-note", "antigravity"])]}
+
+    if is_standalone:
+        if target_collections:
+            note_item["collections"] = target_collections
+    else:
+        note_item["parentItem"] = parent_item_key
+
+    async with httpx.AsyncClient(trust_env=False, timeout=5.0) as client:
+        resp = await client.post(
+            f"{self.base_url}/api/users/0/items",
+            headers={"Content-Type": "application/json"},
+            content=json.dumps([note_item]),
+        )
+        if resp.status_code in (200, 201):
+            return {"success": True, "data": resp.json() if resp.text else {}}
+        return {"success": False, "status_code": resp.status_code, "error": resp.text}</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="2-3">
+                <span class="fz-badge-terracotta">L2-L3</span>
+                <p><strong>先探活再写：</strong>发笔记前先向 <code>127.0.0.1:23119/connector/ping</code> 探路。因为 Zotero 必须开着才能接收本地接口写入，未开时给用户清晰提示而不是报一串难懂的连接异常。</p>
+              </div>
+              <div class="annot-item" data-lines="8-12">
+                <span class="fz-badge-terracotta">L8-L12</span>
+                <p><strong>独立 PDF 的归档特判：</strong>Zotero 不允许把笔记挂在“独立 PDF 附件”底下当子条目；如果检测到目标是独立 PDF，就改为把笔记直接写进它所在的分类集合 <code>collections</code> 中。</p>
+              </div>
+              <div class="annot-item" data-lines="14">
+                <span class="fz-badge-terracotta">L14</span>
+                <p><strong>关键参数 <code>trust_env=False</code>：</strong>很多科研同学电脑开着系统代理软件，如果不加 <code>trust_env=False</code>，<code>httpx</code> 会把发往本机 <code>127.0.0.1:23119</code> 的请求也送进代理软件导致 502 失败！</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 章节 06：本地运行、前端打包与脱机夹具测试 -->
+      <section class="section-block" id="sec-run-test" data-num="06" data-nav="本地挂载、打包与脱机测试">
+        <span class="section-eyebrow">06 / 不装 Zotero 也能跑通全部测试的秘诀</span>
+        <h2>从零挂载插件、打包前端并运行全套自动化测试</h2>
+        <p>整个仓库通过 <code>uv</code> 管理 Python 3.11+ 环境与依赖，并通过合成测试夹具 <code>tests/fixtures/mock_zotero.py</code> 在临时目录里现造假的 <code>zotero.sqlite</code> 和假 PDF 文件——这意味着<strong>任何人在没有安装 Zotero 的机器上，也能一键跑通全部测试</strong>。</p>
+
+        <div class="terminal-sim">
+          <div class="terminal-bar">
+            <div class="terminal-dots"><span></span><span></span><span></span></div>
+            <span style="font-family:var(--font-mono); font-size:0.74rem; color:#E5B47A;">在项目根目录执行（Windows PowerShell / macOS / Linux 通用）</span>
+          </div>
+          <div class="terminal-body"><div class="term-cmd">$ uv sync</div><div class="term-out">自动创建 .venv 并精确还原 uv.lock 里的 fastapi、httpx、mcp、pypdf 等依赖</div>
+<div class="term-cmd" style="margin-top:0.65rem;">$ uv run python scripts/bundle_frontend.py --build</div><div class="term-out">✅ 检查 8 个 ESM 模块语法 -&gt; 确定性打包生成自包含 app.js -&gt; Node VM 校验通过</div>
+<div class="term-cmd" style="margin-top:0.65rem;">$ uv run python tests/run_all.py</div><div class="term-out">自动注入 mock_zotero.py 合成数据库与 PDF，跑通 Core / MCP 快照 / Sidecar 接口全量测试</div></div>
+        </div>
+
+        <div class="two-col-grid">
+          <div class="fz-card">
+            <h4>挂载到 Antigravity（Windows PowerShell）</h4>
+            <p style="margin:0; font-size:0.88rem;">把项目目录软链接或复制到 <code>$HOME\.gemini\config\plugins\zotero-in-ag</code> 后重启 Antigravity。之后输入 <code>/zotero</code> 即可呼出侧边栏胶囊与 6 个 MCP 工具。</p>
+          </div>
+          <div class="fz-card">
+            <h4>出问题去哪里查日志？</h4>
+            <p style="margin:0; font-size:0.88rem;"><strong>MCP 工具调不通</strong>：检查 <code>uv</code> 是否在系统 PATH 且 <code>pyproject.toml</code> 依赖已装好；<strong>侧边栏白屏</strong>：先跑 <code>bundle_frontend.py --check</code> 查前端是否忘记重新打包；<strong>存笔记报未运行</strong>：确认桌面端 Zotero 7+ 已启动。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       8. 基座运行时辅助函数 (目录扫描 / ScrollSpy / 词法高亮 / 双向联动 / 术语微释义)
+       ========================================================================== -->
+  <script>
+    (function () {
+      const slug = document.body.getAttribute("data-project-slug") || "from-zero-project";
+      const STORAGE_KEY = `fz_progress_${slug}`;
+      const THEME_KEY = "fz_theme_pref";
+      let completedSteps = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+
+      window.initTheme = function () {
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+      };
+      window.toggleTheme = function () {
+        const cur = document.documentElement.getAttribute("data-theme") || "light";
+        const next = cur === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem(THEME_KEY, next);
+      };
+      window.fzToggleMobileNav = function () { document.getElementById("app-sidebar")?.classList.toggle("open"); };
+
+      window.fzBuildSidebar = function () {
+        const navEl = document.getElementById("sidebar-nav");
+        const sections = Array.from(document.querySelectorAll("#main-canvas > section[data-nav]"));
+        if (!navEl || sections.length === 0) return;
+        navEl.innerHTML = sections.map((sec, idx) => {
+          const id = sec.id;
+          const num = sec.getAttribute("data-num") || String(idx + 1).padStart(2, "0");
+          const label = sec.getAttribute("data-nav");
+          return `<li><a class="nav-link ${idx === 0 ? "active" : ""}" data-nav-target="${id}" href="#${id}"><span class="nav-num">${num}<\/span><span>${label}<\/span><\/a><\/li>`;
+        }).join("");
+        navEl.querySelectorAll(".nav-link").forEach(link => {
+          link.addEventListener("click", () => {
+            manualNavLockUntil = Date.now() + 650;
+            setActiveNav(link.getAttribute("data-nav-target"));
+            document.getElementById("app-sidebar")?.classList.remove("open");
+          });
+        });
+      };
+
+      let manualNavLockUntil = 0;
+      function setActiveNav(sectionId) {
+        document.querySelectorAll("#sidebar-nav .nav-link").forEach(link => {
+          link.classList.toggle("active", link.getAttribute("data-nav-target") === sectionId);
+        });
+      }
+      window.updateScrollSpy = function () {
+        if (Date.now() < manualNavLockUntil) return;
+        const sections = Array.from(document.querySelectorAll("#main-canvas > section[data-nav]"));
+        if (sections.length === 0) return;
+        if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 40)) {
+          setActiveNav(sections[sections.length - 1].id);
+          return;
+        }
+        const triggerLine = window.innerHeight * 0.28;
+        let currentId = sections[0].id;
+        for (const sec of sections) {
+          if (sec.getBoundingClientRect().top <= triggerLine) currentId = sec.id;
+          else break;
+        }
+        setActiveNav(currentId);
+      };
+      let scrollTicking = false;
+      window.addEventListener("scroll", () => {
+        if (!scrollTicking) {
+          window.requestAnimationFrame(() => { window.updateScrollSpy(); scrollTicking = false; });
+          scrollTicking = true;
+        }
+      }, { passive: true });
+
+      window.updateProgressUI = function () {
+        const boxes = Array.from(document.querySelectorAll("input[type='checkbox'][data-step-id]"));
+        const total = boxes.length;
+        const done = boxes.filter(b => completedSteps.has(b.getAttribute("data-step-id"))).length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        const label = document.getElementById("progress-label");
+        const fill = document.getElementById("progress-fill");
+        if (label) label.textContent = `${done} / ${total} 步已完成`;
+        if (fill) fill.style.width = `${pct}%`;
+      };
+      window.fzInitProgress = function () {
+        document.querySelectorAll("input[type='checkbox'][data-step-id]").forEach(box => {
+          const stepId = box.getAttribute("data-step-id");
+          box.checked = completedSteps.has(stepId);
+          box.addEventListener("change", () => {
+            if (box.checked) completedSteps.add(stepId);
+            else completedSteps.delete(stepId);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([...completedSteps]));
+            window.updateProgressUI();
+          });
+        });
+        window.updateProgressUI();
+      };
+      window.resetProgress = function () {
+        completedSteps.clear();
+        localStorage.setItem(STORAGE_KEY, "[]");
+        document.querySelectorAll("input[type='checkbox'][data-step-id]").forEach(b => { b.checked = false; });
+        window.updateProgressUI();
+      };
+
+      window.fzCopyText = function (text, btn) {
+        const done = () => { if (!btn) return; const old = btn.textContent; btn.textContent = "✓ 已复制"; setTimeout(() => { btn.textContent = old; }, 1400); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+        else fallbackCopy(text, done);
+      };
+      function fallbackCopy(text, cb) {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta); cb();
+      }
+
+      function esc(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      window.fzHighlightLine = function (rawLine, lang) {
+        let html = esc(rawLine);
+        const tokens = [];
+        const stash = (cls, match) => {
+          const id = `___FZTOK_${tokens.length}___`;
+          tokens.push(`<span class="${cls}">${match}<\/span>`);
+          return id;
+        };
+
+        const strPat = "&quot;(?:\\\\&quot;|(?!&quot;).)*?&quot;|'(?:\\\\'|[^'])*?'|`(?:\\\\`|[^`])*?`";
+        if (lang === "py" || lang === "bash") {
+          html = html.replace(new RegExp(`(#.*$)|(${strPat})`, "g"), (m, com, str) =>
+            com ? stash("tok-com", com) : stash("tok-str", str)
+          );
+        } else if (lang === "html") {
+          html = html.replace(new RegExp(`(&lt;!--[\\s\\S]*?--&gt;)|(${strPat})`, "g"), (m, com, str) =>
+            com ? stash("tok-com", com) : stash("tok-str", str)
+          );
+        } else if (lang === "json") {
+          html = html.replace(/(&quot;(?:\\&quot;|(?!&quot;).)*?&quot;)(\s*:)?/g, (_, k, colon) =>
+            colon ? stash("tok-fn", k) + colon : stash("tok-str", k)
+          );
+        } else {
+          html = html.replace(new RegExp(`(\\/\\/.*$|\\/\\*[\\s\\S]*?\\*\\/)|(${strPat})`, "g"), (m, com, str) =>
+            com ? stash("tok-com", com) : stash("tok-str", str)
+          );
+        }
+
+        if (lang === "html") {
+          html = html.replace(/(&lt;\/?[a-zA-Z0-9-]+)/g, '<span class="tok-tag">$1<\/span>');
+          html = html.replace(/(\/?&gt;)/g, '<span class="tok-tag">$1<\/span>');
+        } else if (lang === "css") {
+          html = html.replace(/(^|[\s{;])([a-z-]+)(\s*:)/g, '$1<span class="tok-fn">$2<\/span>$3');
+        } else if (lang !== "json") {
+          html = html.replace(/\b(const|let|var|function|async|await|return|import|export|from|default|if|elif|else|for|of|in|while|try|except|finally|with|as|pass|continue|break|yield|raise|and|or|not|is|None|True|False|def|class|catch|new|true|false|null|undefined|SELECT|INSERT|INTO|VALUES|UPDATE|SET|CASE|WHEN|THEN|ELSE|END|DELETE|FROM|WHERE|ORDER|BY|DESC|CREATE|TABLE|IF|NOT|EXISTS|PRIMARY|KEY|AUTOINCREMENT|INTEGER|TEXT)\b/g,
+            '<span class="tok-kw">$1<\/span>');
+        } else {
+          html = html.replace(/\b(true|false|null)\b/g, '<span class="tok-kw">$1<\/span>');
+        }
+
+        html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1<\/span>');
+        html = html.replace(/___FZTOK_(\d+)___/g, (_, idx) => tokens[Number(idx)]);
+        return html;
+      };
+
+      function parseLineSpec(spec) {
+        const set = new Set();
+        String(spec || "").split(",").forEach(part => {
+          const p = part.trim();
+          if (!p) return;
+          if (p.includes("-")) {
+            const [a, b] = p.split("-").map(n => parseInt(n.trim(), 10));
+            if (a && b) for (let k = a; k <= b; k++) set.add(k);
+          } else {
+            const n = parseInt(p, 10);
+            if (n) set.add(n);
+          }
+        });
+        return set;
+      }
+
+      window.fzInitCodeWalkthroughs = function () {
+        document.querySelectorAll(".code-walkthrough").forEach(box => {
+          const codeEl = box.querySelector("pre.code-pre code");
+          if (!codeEl) return;
+
+          const rawText = codeEl.textContent.replace(/^\n+|\n+$/g, "");
+          const lang = box.getAttribute("data-lang") || "js";
+          const hlSet = new Set((box.getAttribute("data-highlight") || "").split(",").map(s => parseInt(s.trim(), 10)).filter(Boolean));
+
+          const focusAttr = box.getAttribute("data-focus");
+          let focusRange = null;
+          if (focusAttr && focusAttr.includes("-")) {
+            const [s, e] = focusAttr.split("-").map(n => parseInt(n.trim(), 10));
+            if (s && e) focusRange = [s, e];
+          }
+
+          const scope = box.parentElement;
+          const annotItems = Array.from(scope?.querySelectorAll(".annot-item[data-lines]") || []);
+          const lineToAnnots = new Map();
+          annotItems.forEach(item => {
+            const lines = parseLineSpec(item.getAttribute("data-lines"));
+            lines.forEach(ln => {
+              if (!lineToAnnots.has(ln)) lineToAnnots.set(ln, []);
+              lineToAnnots.get(ln).push(item);
+            });
+          });
+
+          codeEl.innerHTML = rawText.split("\n").map((line, i) => {
+            const ln = i + 1;
+            const isHl = hlSet.has(ln) ? "highlight" : "";
+            const hasAnnot = lineToAnnots.has(ln) ? "has-annot" : "";
+            const titleAttr = hasAnnot ? ' title="点击定位对应代码注解"' : "";
+            return `<span class="code-line ${isHl} ${hasAnnot}" data-line="${ln}"${titleAttr}><span class="ln">${ln}<\/span>${window.fzHighlightLine(line, lang)}<\/span>`;
+          }).join("");
+
+          const copyBtn = box.querySelector("[data-copy-code]");
+          if (copyBtn) copyBtn.addEventListener("click", () => window.fzCopyText(rawText, copyBtn));
+
+          const viewBtn = box.querySelector("[data-toggle-view]");
+          if (viewBtn && focusRange) {
+            let focusMode = false;
+            viewBtn.addEventListener("click", () => {
+              focusMode = !focusMode;
+              codeEl.querySelectorAll(".code-line").forEach(el => {
+                const ln = parseInt(el.getAttribute("data-line"), 10);
+                el.classList.toggle("is-collapsed-line", focusMode && (ln < focusRange[0] || ln > focusRange[1]));
+              });
+              viewBtn.textContent = focusMode ? "展开完整文件" : `仅看核心行 (L${focusRange[0]}-L${focusRange[1]})`;
+            });
+          } else if (viewBtn) {
+            viewBtn.style.display = "none";
+          }
+
+          const activateLines = (targetSet, scrollCode) => {
+            let firstEl = null;
+            codeEl.querySelectorAll(".code-line").forEach(el => {
+              const ln = parseInt(el.getAttribute("data-line"), 10);
+              const hit = targetSet.has(ln);
+              el.classList.toggle("focus-pulse", hit);
+              if (hit) {
+                if (scrollCode) el.classList.remove("is-collapsed-line");
+                if (!firstEl) firstEl = el;
+              }
+            });
+            if (scrollCode && firstEl) {
+              firstEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            }
+          };
+
+          annotItems.forEach(item => {
+            item.addEventListener("click", () => {
+              annotItems.forEach(a => a.classList.remove("active"));
+              item.classList.add("active");
+              activateLines(parseLineSpec(item.getAttribute("data-lines")), true);
+            });
+          });
+
+          codeEl.querySelectorAll(".code-line.has-annot").forEach(lineEl => {
+            lineEl.addEventListener("click", () => {
+              const ln = parseInt(lineEl.getAttribute("data-line"), 10);
+              const matched = lineToAnnots.get(ln) || [];
+              if (!matched.length) return;
+              annotItems.forEach(a => a.classList.remove("active"));
+              matched.forEach(a => a.classList.add("active"));
+              activateLines(parseLineSpec(matched[0].getAttribute("data-lines")), false);
+              matched[0].scrollIntoView({ block: "nearest", behavior: "smooth" });
+            });
+          });
+        });
+      };
+
+      window.fzInitTermChips = function () {
+        document.querySelectorAll(".term-chip[data-term-tip]").forEach(chip => {
+          chip.setAttribute("type", "button");
+          chip.setAttribute("aria-expanded", "false");
+          chip.addEventListener("click", () => {
+            const existing = chip.nextElementSibling;
+            if (existing && existing.classList.contains("term-popover") && existing.dataset.forTerm === chip.textContent) {
+              existing.remove();
+              chip.classList.remove("open");
+              chip.setAttribute("aria-expanded", "false");
+              return;
+            }
+            const pop = document.createElement("span");
+            pop.className = "term-popover";
+            pop.dataset.forTerm = chip.textContent;
+            pop.textContent = `${chip.textContent}：${chip.getAttribute("data-term-tip")}`;
+            chip.insertAdjacentElement("afterend", pop);
+            chip.classList.add("open");
+            chip.setAttribute("aria-expanded", "true");
+          });
+        });
+      };
+
+      window.fzToggleTree = function (rowEl) {
+        const li = rowEl.parentElement;
+        if (!li || !li.querySelector(".tree-children")) return;
+        li.classList.toggle("collapsed");
+        const caret = rowEl.querySelector(".tree-caret");
+        if (caret) caret.textContent = li.classList.contains("collapsed") ? "▸" : "▾";
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        window.initTheme();
+        window.fzBuildSidebar();
+        window.fzInitProgress();
+        window.fzInitCodeWalkthroughs();
+        window.fzInitTermChips();
+        window.updateScrollSpy();
+      });
+    })();
+  </script>
+
+  <!-- Zotero in AG 专属：四域拓扑 + 同构无锁回退/写笔记/SSRF双沙盘 + Sticky 图解 -->
+  <script>
+    const ZAG_TOPO = {
+      host: {
+        badge: "宿主层 · Antigravity", file: "plugin.json + skills/zotero/SKILL.md", title: "Antigravity 插件入口与技能引导",
+        duties: [
+          "1. plugin.json 向编辑器声明插件名称、版本与快捷建议词（如 /zotero）。",
+          "2. SKILL.md 指导 Agent 何时输出快捷胶囊 [打开 Zotero in AG 侧边栏](sidecar://zotero-in-ag/zotero-pane/)。",
+          "3. 同时把用户问题路由到 6 个 MCP 原子工具，完成搜索、分段精读与生成独立笔记。"
+        ]
+      },
+      mcp: {
+        badge: "通道 1 · MCP Server", file: "mcp_config.json → src/mcp_server/server.py", title: "基于 stdio 管道的 AI 工具集",
+        duties: [
+          "1. 使用 FastMCP 暴露 zotero_search、zotero_get_collections、zotero_get_item、zotero_read_pdf、zotero_add_note、zotero_add_tags。",
+          "2. 默认返回结构化 Markdown 文本，限制单次最多读取 10 页 PDF，避免塞爆对话上下文。",
+          "3. 与 Sidecar 共享同一套 Service 层实例，保证两边查到的分类树和条目完全一致。"
+        ]
+      },
+      sidecar: {
+        badge: "通道 2 · Aux Pane Sidecar", file: "sidecars/zotero-pane/sidecar.json → src/sidecar/server.py", title: "FastAPI 托管的交互式 PDF 侧边栏",
+        duties: [
+          "1. 以 FastAPI + Uvicorn 监听本机 23180 端口（或动态环境变量端口），向辅助侧边栏提供完整网页。",
+          "2. 通过 Accept-Ranges: bytes 响应头流式传输本地 PDF，配合离线 PDF.js 与 CMap 渲染中文论文。",
+          "3. 提供批注缓存读写（/api/annotations）与多模型学术翻译接口（/api/translate）。"
+        ]
+      },
+      core: {
+        badge: "共享内核 · Services + Core", file: "src/services/ + src/core/ + src/domain/", title: "安全校验、只读数据库与 Zotero Local API",
+        duties: [
+          "1. db.py 用 mode=ro 实时读取 WAL 更新，Windows 锁冲突时自动降级为 mode=ro&immutable=1。",
+          "2. validation.py 与 storage.py 守住 8 位 Key 边界、防路径穿越及 5 层云元数据 SSRF 防护。",
+          "3. zotero_api.py 通过本机 23119 端口安全写入独立富文本笔记，绝不直接改写用户数据库。"
+        ]
+      }
+    };
+    window.selectZagNode = function (key, gEl) {
+      document.querySelectorAll(".topo-node").forEach(n => n.classList.remove("active"));
+      if (gEl) gEl.classList.add("active");
+      const info = ZAG_TOPO[key], drawer = document.getElementById("zag-topo-drawer");
+      if (!info || !drawer) return;
+      drawer.innerHTML = `<div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.45rem;"><span class="fz-badge-terracotta">${info.badge}<\/span><code>${info.file}<\/code><\/div><h3>${info.title}<\/h3><ul class="duty-list">${info.duties.map(d => `<li>${d}<\/li>`).join("")}<\/ul>`;
+    };
+
+    window.switchZagTab = function (tab, btn) {
+      document.querySelectorAll(".sandbox-tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".sandbox-panel").forEach(p => p.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      document.getElementById(`panel-${tab}`)?.classList.add("active");
+    };
+
+    window.runZagDbSim = function () {
+      const lockMode = document.getElementById("zag-lock-mode").value;
+      const badge = document.getElementById("zag-db-badge");
+      const log = document.getElementById("zag-db-log");
+      if (lockMode === "wal") {
+        badge.textContent = "mode=ro 一次连通";
+        log.textContent =
+          `[ZoteroDB._get_connection]\n` +
+          `1. 尝试连接: file:///C:/Users/demo/Zotero/zotero.sqlite?mode=ro (timeout=0.6s)\n` +
+          `2. 执行探活: SELECT 1 FROM collections LIMIT 1;\n` +
+          `[OK] 成功读取最新 WAL 增量数据！准备交由 get_collections_tree() 组装目录树。`;
+      } else {
+        badge.textContent = "触发 immutable=1 回退";
+        log.textContent =
+          `[ZoteroDB._get_connection]\n` +
+          `1. 第 1 次尝试: ?mode=ro -> OperationalError: database is locked (等待 0.1s)\n` +
+          `2. 第 2 次尝试: ?mode=ro -> OperationalError: database is locked\n` +
+          `3. 触发 Windows 独占锁保底回退: file:///C:/Users/demo/Zotero/zotero.sqlite?mode=ro&immutable=1\n` +
+          `[OK] 绕过操作系统文件锁限制，只读查询成功返回！`;
+      }
+    };
+
+    window.runZagApiSim = function () {
+      const itemType = document.getElementById("zag-item-type").value;
+      const running = document.getElementById("zag-app-running").value;
+      const badge = document.getElementById("zag-db-badge");
+      const log = document.getElementById("zag-db-log");
+
+      if (running === "no") {
+        badge.textContent = "23119 端口未响应 (安全拒绝)";
+        log.textContent =
+          `[ZoteroAPIClient.is_running_async]\n` +
+          `GET http://127.0.0.1:23119/connector/ping (trust_env=False) -> 连接超时/拒绝\n` +
+          `[已安全拦截] 返回: "Zotero 桌面端当前未运行。为了保证数据库安全与实时同步，请先启动 Zotero 客户端。"\n` +
+          `（绝不绕过客户端直接强写 zotero.sqlite！）`;
+        return;
+      }
+
+      const payload = itemType === "standalone"
+        ? [{ itemType: "note", note: "<h2>论文精读笔记<\/h2><p>核心结论...<\/p>", tags: [{ tag: "agent-note" }, { tag: "antigravity" }], collections: ["C1"] }]
+        : [{ itemType: "note", parentItem: "DQGFST6U", note: "<h2>论文精读笔记<\/h2><p>核心结论...<\/p>", tags: [{ tag: "agent-note" }, { tag: "antigravity" }] }];
+
+      badge.textContent = itemType === "standalone" ? "独立 PDF -> 归档到分类 C1" : "标准条目 -> 挂载到 parentItem";
+      log.textContent =
+        `[ZoteroAPIClient.create_item_note_async]\n` +
+        `1. GET http://127.0.0.1:23119/connector/ping -> 200 OK\n` +
+        `2. ${itemType === "standalone" ? "检测到目标为独立 PDF 附件，自动改用 collections 归档字段" : "检测到目标为标准文献条目，使用 parentItem 挂载子笔记"}\n` +
+        `3. POST http://127.0.0.1:23119/api/users/0/items (trust_env=False)\n` +
+        `发送 JSON Payload:\n${JSON.stringify(payload, null, 2)}\n` +
+        `[HTTP 201] 笔记已由 Zotero 客户端安全写入并同步！`;
+    };
+
+    window.setSecPreset = function (k, u) {
+      document.getElementById("zag-key-in").value = k;
+      document.getElementById("zag-url-in").value = u;
+      window.runZagSecuritySim();
+    };
+
+    function isLinkLocalIPv4Num(num) {
+      const a = (num >>> 24) & 255;
+      const b = (num >>> 16) & 255;
+      return a === 169 && b === 254;
+    }
+
+    window.runZagSecuritySim = function () {
+      const key = (document.getElementById("zag-key-in").value || "").trim();
+      const rawUrl = (document.getElementById("zag-url-in").value || "").trim();
+      const stagesEl = document.getElementById("zag-shield-stages");
+      const logEl = document.getElementById("zag-sec-log");
+
+      const keyOk = /^[A-Za-z0-9]{8}$/.test(key);
+      let urlReason = "";
+      let urlOk = true;
+      let normalized = "";
+      try {
+        const u = new URL(rawUrl || "https://api.deepseek.com");
+        if (u.protocol !== "http:" && u.protocol !== "https:") {
+          urlOk = false; urlReason = `协议 ${u.protocol} 不在 http/https 白名单内`;
+        } else {
+          const host = u.hostname.toLowerCase();
+          if (host === "metadata.google.internal" || host === "instance-data") {
+            urlOk = false; urlReason = "第 1 层命中：云元数据域名黑名单";
+          } else if (/^0x[0-9a-f]+$/i.test(host) && isLinkLocalIPv4Num(parseInt(host, 16))) {
+            urlOk = false; urlReason = `第 2 层命中：十六进制整数 ${host} 解析为 169.254.x.x 云元数据内网段`;
+          } else if (/^\d+$/.test(host) && isLinkLocalIPv4Num(Number(host))) {
+            urlOk = false; urlReason = `第 2 层命中：十进制整数 ${host} 解析为 169.254.x.x 云元数据内网段`;
+          } else if (host.startsWith("169.254.")) {
+            urlOk = false; urlReason = "第 3-5 层命中：169.254.x.x 链路本地元数据地址";
+          } else {
+            const clean = rawUrl.replace(/\/+$/, "");
+            normalized = clean.endsWith("/chat/completions") ? clean : (clean.endsWith("/v1") ? `${clean}/chat/completions` : `${clean}/v1/chat/completions`);
+          }
+        }
+      } catch (e) {
+        urlOk = false; urlReason = "URL 格式解析失败";
+      }
+
+      stagesEl.innerHTML =
+        `<div class="shield-stage ${keyOk ? "pass" : "block"}"><strong>防线 1 · 8 位 Key 正则<\/strong><div style="margin-top:0.25rem;">${keyOk ? `✓ 通过：${key} 合法` : `✕ 拦截：${key || "(空)"} 含非法字符或长度非 8 位`}<\/div><\/div>` +
+        `<div class="shield-stage ${urlOk ? "pass" : "block"}"><strong>防线 2 · 5 层 SSRF 校验<\/strong><div style="margin-top:0.25rem;">${urlOk ? "✓ 通过：公网安全大模型地址" : `✕ ${urlReason}`}<\/div><\/div>`;
+
+      logEl.textContent =
+        `[validate_8char_key(${JSON.stringify(key)})] -> ${keyOk ? "True (允许拼接 storage_dir/" + key + ")" : "False (HTTP 400 Invalid item key format)"}\n` +
+        `[normalize_and_validate_chat_endpoint(${JSON.stringify(rawUrl)})] -> ${urlOk ? "通过，标准化端点: " + normalized : "ValueError: " + urlReason}`;
+    };
+
+    const ZAG_PRINCIPLES = [
+      `<span class="fz-badge-sage" style="margin-bottom:0.65rem;">原子缓存替换原理<\/span>
+       <svg viewBox="0 0 360 165" style="width:100%; height:auto; display:block;">
+         <rect x="12" y="18" width="142" height="58" rx="8" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+         <text x="83" y="44" text-anchor="middle" fill="var(--text-primary)" font-size="11.5" font-weight="600">1. 先写临时文件<\/text>
+         <text x="83" y="62" text-anchor="middle" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">tmpXXXXXX.json<\/text>
+         <path d="M 158 47 L 200 47" stroke="var(--accent-terracotta)" stroke-width="2" />
+         <rect x="206" y="18" width="142" height="58" rx="8" fill="var(--accent-sage-soft)" stroke="var(--accent-sage)" />
+         <text x="277" y="44" text-anchor="middle" fill="var(--accent-sage)" font-size="11.5" font-weight="600">2. os.replace() 原子覆盖<\/text>
+         <text x="277" y="62" text-anchor="middle" fill="var(--text-secondary)" font-size="9.5" font-family="var(--font-mono)">zotero_annotations_cache.json<\/text>
+         <text x="180" y="114" text-anchor="middle" fill="var(--text-secondary)" font-size="11">即使第 1 步中途断电，旧正式文件也完好无损<\/text>
+       <\/svg>`,
+      `<span class="fz-badge-terracotta" style="margin-bottom:0.65rem;">ESM 模块 -> 自包含 IIFE 打包<\/span>
+       <div style="font-family:var(--font-mono); font-size:0.79rem; line-height:1.75; color:var(--text-primary);">
+         <div>源码 (8 个文件): <code>state.js -&gt; api.js -&gt; shield.js -&gt; pdf_viewer.js -&gt; main.js<\/code><\/div>
+         <div style="margin:0.45rem 0; color:var(--accent-terracotta);">↓ scripts/bundle_frontend.py --build<\/div>
+         <div>产物 (1 个文件): <code>(function () { 'use strict'; ... })();<\/code><\/div>
+         <div style="margin-top:0.45rem; font-family:var(--font-sans); color:var(--text-secondary);">一次请求加载，Node VM 语法与 DOM 烟雾检查确保零漂移。<\/div>
+       <\/div>`,
+      `<span class="fz-badge-terracotta" style="margin-bottom:0.65rem;">Zotero 选区护盾垂直投影<\/span>
+       <svg viewBox="0 0 360 165" style="width:100%; height:auto; display:block;">
+         <rect x="16" y="18" width="150" height="120" rx="8" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+         <text x="91" y="42" text-anchor="middle" fill="var(--text-primary)" font-size="11" font-weight="600">左栏正文 &lt;span&gt;<\/text>
+         <rect x="194" y="18" width="150" height="120" rx="8" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+         <text x="269" y="42" text-anchor="middle" fill="var(--text-primary)" font-size="11" font-weight="600">右栏正文 &lt;span&gt;<\/text>
+         <circle cx="176" cy="84" r="5" fill="var(--accent-terracotta)" />
+         <text x="180" y="106" text-anchor="middle" fill="var(--accent-terracotta)" font-size="10">鼠标滑入栏间空白时<\/text>
+         <text x="180" y="122" text-anchor="middle" fill="var(--text-secondary)" font-size="10">按 clientY + 分栏过滤锁定行尾<\/text>
+       <\/svg>`
+    ];
+    window.selectZagPrinciple = function (idx, cardEl) {
+      document.querySelectorAll(".sticky-card").forEach(c => c.classList.remove("active"));
+      if (cardEl) cardEl.classList.add("active");
+      document.getElementById("zag-principle-stage").innerHTML = ZAG_PRINCIPLES[idx];
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      window.selectZagNode("host", document.querySelector(".topo-node"));
+      window.selectZagPrinciple(0, document.querySelector(".sticky-card"));
+      window.runZagSecuritySim();
+    });
+  </script>
+</body>
+</html>

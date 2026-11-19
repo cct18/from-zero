@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow 全栈待办应用 — 从零构建交互式教程</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #FAF9F5; --bg-surface: #FFFFFF; --bg-elevated: #F6F4EE; --bg-muted: #EFECE6; --bg-code: #F3F1EB; --bg-terminal: #191817;
+      --text-primary: #1F1E1D; --text-secondary: #5F5D56; --text-muted: #8E8B82; --text-on-accent: #FFFFFF;
+      --border-subtle: #E8E6DF; --border-strong: #D5D2C8;
+      --accent-terracotta: #D97757; --accent-terracotta-hover: #C46344; --accent-terracotta-soft: #F8EFEA; --accent-terracotta-border: #EBC9B8;
+      --accent-sand: #D99B52; --accent-sand-soft: #FBF5EC; --accent-sage: #52734D; --accent-sage-soft: #EEF4EC; --accent-danger: #C24E42; --accent-danger-soft: #FBECE9;
+      --syn-kw: #B5492B; --syn-str: #486B43; --syn-num: #9E6A21; --syn-com: #8E8B82; --syn-fn: #375A7F; --syn-tag: #9E472A;
+      --shadow-card: 0 1px 3px rgba(31, 30, 29, 0.04), 0 1px 2px rgba(31, 30, 29, 0.02); --shadow-elevated: 0 8px 24px rgba(31, 30, 29, 0.07);
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+      --font-serif: "Newsreader", "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "Microsoft YaHei", "Charter", "Georgia", serif;
+      --font-sans: "Inter", "PingFang SC", "HarmonyOS Sans SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", monospace;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); --duration-fast: 180ms; --duration-normal: 280ms;
+    }
+    [data-theme="dark"] {
+      --bg-primary: #191817; --bg-surface: #242220; --bg-elevated: #2C2926; --bg-muted: #1E1D1B; --bg-code: #1E1D1B; --bg-terminal: #121110;
+      --text-primary: #E5E3DE; --text-secondary: #A8A49B; --text-muted: #78746C; --text-on-accent: #191817;
+      --border-subtle: #383532; --border-strong: #4A4642;
+      --accent-terracotta: #E08365; --accent-terracotta-hover: #EB9579; --accent-terracotta-soft: rgba(224, 131, 101, 0.14); --accent-terracotta-border: rgba(224, 131, 101, 0.35);
+      --accent-sand: #E5B47A; --accent-sand-soft: rgba(229, 180, 122, 0.14); --accent-sage: #87A380; --accent-sage-soft: rgba(135, 163, 128, 0.14); --accent-danger: #E06C60; --accent-danger-soft: rgba(224, 108, 96, 0.14);
+      --syn-kw: #EB9579; --syn-str: #97BA90; --syn-num: #E5B47A; --syn-com: #78746C; --syn-fn: #8BB4D9; --syn-tag: #EB9579;
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25); --shadow-elevated: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body { background-color: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans); line-height: 1.76; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, .serif-title { font-family: var(--font-serif); font-weight: 600; letter-spacing: -0.015em; color: var(--text-primary); }
+    h1 { font-size: clamp(1.9rem, 3vw, 2.55rem); line-height: 1.24; margin-bottom: 0.85rem; }
+    h2 { font-size: clamp(1.4rem, 2.2vw, 1.78rem); line-height: 1.3; margin-bottom: 0.7rem; }
+    h3 { font-size: 1.15rem; line-height: 1.4; margin-bottom: 0.48rem; }
+    h4 { font-size: 0.98rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; }
+    p { color: var(--text-secondary); margin-bottom: 0.95rem; max-width: 74ch; line-height: 1.82; }
+    ul, ol { color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 0.95rem; }
+    li { margin-bottom: 0.35rem; }
+    svg text { font-family: var(--font-sans); }
+    code, pre { font-family: var(--font-mono); font-size: 0.86em; }
+    p code, li code, td code, th code, h1 code, h2 code, h3 code, h4 code, .jit-concept code, .deep-dive code, .sandbox-guide code {
+      background: var(--bg-code); color: var(--text-primary); padding: 0.05em 0.34em; border-radius: 4px;
+      border: 1px solid var(--border-subtle); font-size: 0.84em; line-height: 1.2; vertical-align: 0.03em;
+    }
+    h1 code, h2 code, h3 code, h4 code { font-size: 0.82em; padding: 0.04em 0.3em; }
+
+    .mobile-topbar { display: none; position: sticky; top: 0; z-index: 40; background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle); padding: 0.75rem 1rem; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .app-shell { display: grid; grid-template-columns: 276px minmax(0, 1fr); min-height: 100vh; max-width: 1420px; margin: 0 auto; }
+    .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 1.85rem 1.3rem; border-right: 1px solid var(--border-subtle); background: var(--bg-primary); display: flex; flex-direction: column; justify-content: space-between; gap: 1.25rem; }
+    .brand-eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--accent-terracotta); display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; font-weight: 600; }
+    .brand-title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; color: var(--text-primary); line-height: 1.35; margin-bottom: 0.35rem; }
+    .brand-sub { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0; }
+    .nav-list { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 1.1rem; }
+    .nav-link { display: flex; align-items: center; gap: 0.55rem; padding: 0.5rem 0.7rem; border-radius: var(--radius-sm); color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; line-height: 1.35; border-left: 3px solid transparent; transition: all var(--duration-fast) var(--ease-out-expo); }
+    .nav-link:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .nav-link.active { background: var(--accent-terracotta-soft); color: var(--accent-terracotta); border-left-color: var(--accent-terracotta); font-weight: 600; }
+    .nav-num { font-family: var(--font-mono); font-size: 0.72rem; opacity: 0.8; min-width: 1.35rem; }
+    .progress-box { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem; box-shadow: var(--shadow-card); }
+    .progress-header { display: flex; justify-content: space-between; font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-secondary); margin-bottom: 0.45rem; }
+    .progress-track { height: 6px; background: var(--bg-muted); border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: var(--accent-terracotta); transition: width var(--duration-normal) var(--ease-out-expo); }
+    .sidebar-actions { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+    .main-canvas { padding: 2.75rem clamp(1.25rem, 4vw, 3.25rem) 5rem; max-width: 980px; width: 100%; }
+    .section-block { padding-bottom: 3.5rem; margin-bottom: 3.5rem; border-bottom: 1px solid var(--border-subtle); scroll-margin-top: 1.5rem; }
+    .section-block:last-child { border-bottom: none; margin-bottom: 0; }
+    .section-eyebrow { display: inline-block; font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-terracotta); margin-bottom: 0.45rem; font-weight: 600; }
+    @media (max-width: 920px) {
+      .mobile-topbar { display: flex; } .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 280px; z-index: 60; transform: translateX(-105%); transition: transform var(--duration-normal) var(--ease-out-expo); box-shadow: var(--shadow-elevated); }
+      .sidebar.open { transform: translateX(0); } .main-canvas { padding: 1.75rem 1.15rem 4rem; } .section-block { scroll-margin-top: 4.2rem; }
+    }
+
+    .fz-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.35rem; box-shadow: var(--shadow-card); margin-bottom: 1.25rem; }
+    .fz-card-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fz-hint { font-size: 0.8rem; color: var(--text-muted); }
+    .fz-badge-mono, .fz-badge-terracotta, .fz-badge-sage, .fz-badge-danger { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--font-mono); font-size: 0.74rem; padding: 0.2rem 0.55rem; border-radius: 999px; font-weight: 500; }
+    .fz-badge-mono { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+    .fz-badge-terracotta { background: var(--accent-terracotta-soft); color: var(--accent-terracotta); border: 1px solid var(--accent-terracotta-border); }
+    .fz-badge-sage { background: var(--accent-sage-soft); color: var(--accent-sage); border: 1px solid rgba(82, 115, 77, 0.25); }
+    .fz-badge-danger { background: var(--accent-danger-soft); color: var(--accent-danger); border: 1px solid rgba(194, 78, 66, 0.28); }
+    .fz-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.44rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all var(--duration-fast) var(--ease-out-expo); }
+    .fz-btn:hover:not(:disabled) { border-color: var(--accent-terracotta-border); background: var(--bg-elevated); transform: translateY(-1px); }
+    .fz-btn-primary { background: var(--accent-terracotta); border-color: var(--accent-terracotta); color: var(--text-on-accent); }
+    .fz-btn-primary:hover:not(:disabled) { background: var(--accent-terracotta-hover); }
+
+    .two-col-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1rem 0 1.25rem; }
+    .jit-concept { background: var(--accent-sand-soft); border: 1px solid rgba(217, 155, 82, 0.35); border-radius: var(--radius-md); padding: 0.95rem 1.15rem; margin: 0.95rem 0; font-size: 0.9rem; }
+    .jit-concept-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .duty-list { list-style: none; padding-left: 0; margin: 0.65rem 0; }
+    .duty-list li { padding: 0.34rem 0; border-bottom: 1px dashed var(--border-subtle); color: var(--text-primary); font-size: 0.9rem; }
+    .duty-list li:last-child { border-bottom: none; }
+
+    .term-chip { display: inline-flex; align-items: center; gap: 0.2rem; background: var(--bg-elevated); color: var(--text-primary); border: 1px dashed var(--accent-terracotta-border); border-radius: 4px; padding: 0.03em 0.38em; margin: 0 0.06em; font-family: var(--font-sans); font-size: 0.9em; font-weight: 500; line-height: 1.35; cursor: pointer; }
+    .term-chip::after { content: "?"; font-family: var(--font-mono); font-size: 0.72em; color: var(--accent-terracotta); margin-left: 0.15rem; }
+    .term-chip:hover, .term-chip.open { background: var(--accent-terracotta-soft); border-style: solid; }
+    .term-popover { display: block; margin: 0.55rem 0; padding: 0.65rem 0.9rem; background: var(--bg-elevated); border-left: 3px solid var(--accent-sand); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.86rem; color: var(--text-primary); }
+
+    .spec-table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+    .spec-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; text-align: left; }
+    .spec-table th { background: var(--bg-elevated); color: var(--text-primary); font-weight: 600; padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+    .spec-table td { padding: 0.62rem 0.85rem; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); vertical-align: top; }
+    .spec-table tr:last-child td { border-bottom: none; }
+
+    .deep-dive { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin: 0.9rem 0; }
+    .deep-dive summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--text-primary); list-style: none; display: flex; align-items: center; gap: 0.5rem; }
+    .deep-dive summary::-webkit-details-marker { display: none; }
+    .deep-dive summary::before { content: "▸"; font-family: var(--font-mono); color: var(--accent-terracotta); }
+    .deep-dive[open] summary::before { content: "▾"; }
+    .deep-dive-body { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); font-size: 0.89rem; color: var(--text-secondary); }
+    .deep-dive-body p:last-child { margin-bottom: 0; }
+
+    .causal-chain { display: flex; align-items: stretch; gap: 0.45rem; flex-wrap: wrap; margin: 1rem 0 1.25rem; }
+    .causal-step { flex: 1; min-width: 145px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.7rem 0.85rem; }
+    .causal-step-tag { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-terracotta); font-weight: 600; display: block; margin-bottom: 0.2rem; }
+    .causal-step-title { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.24rem; }
+    .causal-step-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.65; margin: 0; }
+    .causal-arrow { display: flex; align-items: center; color: var(--accent-terracotta); font-family: var(--font-mono); font-weight: 600; }
+    @media (max-width: 680px) { .causal-arrow { display: none; } }
+
+    .sandbox-guide { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-terracotta); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 0.78rem 1rem; margin-bottom: 1rem; font-size: 0.86rem; color: var(--text-secondary); }
+    .sandbox-guide-title { font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; font-size: 0.86rem; }
+    .sandbox-guide ol { margin: 0; padding-left: 1.25rem; }
+    .sandbox-guide li { margin-bottom: 0.24rem; line-height: 1.65; }
+    .sandbox-guide li:last-child { margin-bottom: 0; }
+
+    .code-walkthrough { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-code); margin: 1rem 0; }
+    .code-topbar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding: 0.55rem 0.9rem; background: var(--bg-elevated); border-bottom: 1px solid var(--border-subtle); }
+    .code-actions { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+    .code-pre { margin: 0; padding: 0.75rem 0; overflow-x: auto; max-height: 460px; overflow-y: auto; line-height: 1.58; tab-size: 2; }
+    .code-line { display: block; padding: 0 1rem 0 0; border-left: 3px solid transparent; transition: background-color 140ms ease; }
+    .code-line .ln { display: inline-block; width: 3.1rem; padding-right: 0.85rem; text-align: right; color: var(--text-muted); user-select: none; font-size: 0.76rem; }
+    .code-line.has-annot { cursor: pointer; }
+    .code-line.has-annot .ln { color: var(--accent-terracotta); font-weight: 600; }
+    .code-line.has-annot:hover { background: var(--bg-elevated); }
+    .code-line.highlight { background: var(--accent-terracotta-soft); border-left-color: var(--accent-terracotta); }
+    .code-line.focus-pulse { background: var(--accent-sand-soft); border-left-color: var(--accent-sand); }
+    .code-line.is-collapsed-line { display: none; }
+    .tok-kw { color: var(--syn-kw); font-weight: 500; } .tok-str { color: var(--syn-str); } .tok-num { color: var(--syn-num); } .tok-com { color: var(--syn-com); font-style: italic; } .tok-fn { color: var(--syn-fn); } .tok-tag { color: var(--syn-tag); }
+    .annot-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.75rem 0; }
+    .annot-item { display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-surface); cursor: pointer; transition: all var(--duration-fast) var(--ease-out-expo); }
+    .annot-item:hover, .annot-item.active { border-color: var(--accent-terracotta); background: var(--accent-terracotta-soft); }
+    .annot-item p { margin: 0; font-size: 0.88rem; color: var(--text-primary); }
+
+    .terminal-sim { background: var(--bg-terminal); color: #E5E3DE; border-radius: var(--radius-md); overflow: hidden; border: 1px solid #302E2B; margin: 1rem 0; }
+    .terminal-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.55rem 0.9rem; background: #23211F; border-bottom: 1px solid #302E2B; flex-wrap: wrap; }
+    .terminal-dots { display: flex; gap: 0.38rem; }
+    .terminal-dots span { width: 9px; height: 9px; border-radius: 50%; background: #4A4742; }
+    .terminal-body { padding: 0.95rem 1.1rem; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+    .term-cmd { color: #E5B47A; margin-bottom: 0.35rem; } .term-out { color: #D4D1CA; }
+
+    .tree-root, .tree-children { list-style: none; padding-left: 0; margin: 0; }
+    .tree-children { padding-left: 1.25rem; border-left: 1px dashed var(--border-strong); margin-left: 0.55rem; }
+    .tree-item.collapsed > .tree-children { display: none; }
+    .tree-row { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.28rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer; }
+    .tree-row:hover { background: var(--bg-elevated); }
+    .tree-caret { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-terracotta); width: 0.9rem; }
+
+    /* TaskFlow 专属样式 */
+    .sandbox-input-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+    .sandbox-input { flex: 1; min-width: 210px; padding: 0.52rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans); font-size: 0.9rem; }
+    .sandbox-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.85rem; }
+    @media (max-width: 760px) { .sandbox-split { grid-template-columns: 1fr; } }
+    .db-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem; }
+    .db-table th, .db-table td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+    .db-table th { color: var(--text-muted); font-weight: 500; background: var(--bg-elevated); white-space: nowrap; }
+    .db-actions { display: flex; gap: 0.35rem; white-space: nowrap; }
+    .db-row-new { animation: rowFlash 900ms ease; }
+    @keyframes rowFlash { from { background: var(--accent-terracotta-soft); } to { background: transparent; } }
+    .topo-node.active rect { stroke: var(--accent-terracotta); stroke-width: 2.2; }
+  </style>
+</head>
+<body data-project-slug="taskflow-fullstack">
+
+  <header class="mobile-topbar">
+    <button class="fz-btn" onclick="fzToggleMobileNav()">☰ 目录导航</button>
+    <strong style="font-family:var(--font-serif); font-size:0.95rem;">TaskFlow 全栈待办</strong>
+    <button class="fz-btn" onclick="toggleTheme()">◐ 主题</button>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar">
+      <div>
+        <span class="brand-eyebrow">FROM-ZERO · 全栈数据流深度教程</span>
+        <div class="brand-title">TaskFlow 待办应用</div>
+        <p class="brand-sub">Node.js + Express + SQLite 从零实现前后端与硬盘持久化</p>
+        <nav aria-label="章节目录">
+          <ul class="nav-list" id="sidebar-nav"></ul>
+        </nav>
+      </div>
+
+      <div>
+        <div class="progress-box">
+          <div class="progress-header">
+            <span>实操完成进度</span>
+            <span id="progress-label">0 / 0 步</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="fz-btn" onclick="toggleTheme()" style="flex:1; justify-content:center;">◐ 深浅主题</button>
+          <button class="fz-btn" onclick="resetProgress()" title="清空本地完成记录">↺ 重置</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-canvas" id="main-canvas">
+      <!-- 章节 01：网络边界、文件结构与技术选型权衡 -->
+      <section class="section-block" id="sec-boundary" data-num="01" data-nav="网络边界与技术选型">
+        <span class="section-eyebrow">01 / 先看清为什么需要前后端分离</span>
+        <h1>TaskFlow：只有 4 个文件的全栈待办应用</h1>
+        <p>很多刚接触开发的同学会疑惑：<strong>既然网页里也能写 JavaScript，为什么不能把待办数据直接存进电脑硬盘里？</strong></p>
+        <p>原因在于浏览器是一个受保护的<button class="term-chip" data-term-tip="沙箱（Sandbox）是指浏览器给网页划定的安全隔离区。网页脚本只能改当前网页的画面，绝不允许直接读写你电脑硬盘上的任意文件——否则你打开一个陌生网站，对方就能偷走你桌面上的文件。">安全沙箱</button>：你打开任何网页，它都无权直接修改你电脑里的文件。因此必须由运行在你本机系统里的 <button class="term-chip" data-term-tip="Node.js 让 JavaScript 可以脱离浏览器直接在电脑桌面/服务器后台运行，拥有读写硬盘文件和监听网络端口的能力。">Node.js 服务端</button>充当“硬盘大管家”，网页通过 <button class="term-chip" data-term-tip="HTTP 请求是浏览器与服务端之间对话的标准信封格式，规定了动作（如 GET 读取、POST 新增）和携带的数据内容。">HTTP 请求</button>请它代劳，把数据存进本地的 <button class="term-chip" data-term-tip="SQLite 是一款轻量级数据库，它不需要单独安装庞大的数据库软件，而是直接把所有表格数据保存成项目里的单个 .db 文件。">SQLite 数据库</button>（俗称“硬盘持久化”——关掉网页甚至重启电脑，数据依然还在）。</p>
+
+        <div class="fz-card">
+          <div class="fz-card-header">
+            <span class="fz-badge-mono">三层网络边界拓扑</span>
+            <span class="fz-hint">点击下面任意一个白色模块卡片，查看它负责的工作与所在运行环境</span>
+          </div>
+          <svg viewBox="0 0 760 212" style="width:100%; height:auto; display:block;" role="img" aria-label="TaskFlow 三层网络边界拓扑图">
+            <defs>
+              <marker id="tf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--accent-terracotta)" />
+              </marker>
+            </defs>
+            <rect x="14" y="14" width="212" height="182" rx="12" fill="var(--bg-elevated)" stroke="var(--border-strong)" stroke-dasharray="5 4" />
+            <text x="28" y="36" fill="var(--text-muted)" font-size="11.5" font-weight="500">边界 1 · 浏览器沙箱</text>
+            <rect x="274" y="14" width="212" height="182" rx="12" fill="var(--bg-elevated)" stroke="var(--border-strong)" stroke-dasharray="5 4" />
+            <text x="288" y="36" fill="var(--text-muted)" font-size="11.5" font-weight="500">边界 2 · Node 本地进程</text>
+            <rect x="534" y="14" width="212" height="182" rx="12" fill="var(--bg-elevated)" stroke="var(--border-strong)" stroke-dasharray="5 4" />
+            <text x="548" y="36" fill="var(--text-muted)" font-size="11.5" font-weight="500">边界 3 · 硬盘持久化</text>
+            <line x1="208" y1="112" x2="292" y2="112" stroke="var(--accent-terracotta)" stroke-width="2" marker-end="url(#tf-arrow)" />
+            <text x="250" y="92" text-anchor="middle" fill="var(--accent-terracotta)" font-size="10.5" font-weight="600">fetch JSON</text>
+            <text x="250" y="105" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">发网络请求</text>
+            <line x1="468" y1="112" x2="552" y2="112" stroke="var(--accent-terracotta)" stroke-width="2" marker-end="url(#tf-arrow)" />
+            <text x="510" y="92" text-anchor="middle" fill="var(--accent-terracotta)" font-size="10.5" font-weight="600">预编译 SQL</text>
+            <text x="510" y="105" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">安全读写库</text>
+
+            <g class="topo-node active" style="cursor:pointer;" onclick="selectTopoNode('ui', this)">
+              <rect x="32" y="66" width="176" height="90" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="120" y="104" text-anchor="middle" fill="var(--text-primary)" font-size="13.5" font-weight="600">前端交互页面</text>
+              <text x="120" y="128" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-family="var(--font-mono)">public/index.html</text>
+            </g>
+            <g class="topo-node" style="cursor:pointer;" onclick="selectTopoNode('api', this)">
+              <rect x="292" y="66" width="176" height="90" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="380" y="104" text-anchor="middle" fill="var(--text-primary)" font-size="13.5" font-weight="600">Express 接口服务</text>
+              <text x="380" y="128" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-family="var(--font-mono)">server.js</text>
+            </g>
+            <g class="topo-node" style="cursor:pointer;" onclick="selectTopoNode('db', this)">
+              <rect x="552" y="66" width="176" height="90" rx="10" fill="var(--bg-surface)" stroke="var(--border-strong)" stroke-width="1.5" />
+              <text x="640" y="104" text-anchor="middle" fill="var(--text-primary)" font-size="13.5" font-weight="600">SQLite 数据层</text>
+              <text x="640" y="128" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-family="var(--font-mono)">db.js → taskflow.db</text>
+            </g>
+          </svg>
+          <div id="topo-drawer" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle);" aria-live="polite"></div>
+        </div>
+
+        <div class="two-col-grid">
+          <div class="fz-card">
+            <h4>为什么选 Node.js + Express 而不是 Python/Java？</h4>
+            <p style="margin:0; font-size:0.9rem;">前后端全部用 JavaScript 编写，不用在两种语言间来回切换。Express 只需要 30 行就能同时搞定静态网页托管和 JSON 接口。如果你更熟悉 Python，完全可以用 <code>FastAPI</code> 替代 <code>server.js</code>。</p>
+          </div>
+          <div class="fz-card">
+            <h4>为什么选 SQLite（<code>better-sqlite3</code>）而不是 MySQL？</h4>
+            <p style="margin:0; font-size:0.9rem;">MySQL/PostgreSQL 需要单独安装数据库服务、配置账号密码和端口；SQLite 直接把整张表存成项目里的单个 <code>taskflow.db</code> 文件，零配置启动。代价是同一时刻只支持单进程写入，当项目需要多台服务器并发写入时再迁往 PostgreSQL。</p>
+          </div>
+        </div>
+
+        <div class="fz-card">
+          <div class="fz-card-header">
+            <span class="fz-badge-mono">完整项目目录</span>
+            <span class="fz-hint">点击文件夹展开或折叠</span>
+          </div>
+          <ul class="tree-root">
+            <li class="tree-item">
+              <div class="tree-row" onclick="fzToggleTree(this)"><span class="tree-caret">▾</span><code>taskflow/</code><span class="fz-hint">项目根目录</span></div>
+              <ul class="tree-children">
+                <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>package.json</code><span class="fz-hint">声明 ES Module 与 express / better-sqlite3 依赖</span></div></li>
+                <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>db.js</code><span class="fz-hint">自动建表并封装 4 个纯数据库操作函数</span></div></li>
+                <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>server.js</code><span class="fz-hint">启动 3000 端口，托管网页与 4 条 REST 接口</span></div></li>
+                <li class="tree-item">
+                  <div class="tree-row" onclick="fzToggleTree(this)"><span class="tree-caret">▾</span><code>public/</code></div>
+                  <ul class="tree-children">
+                    <li class="tree-item"><div class="tree-row"><span class="tree-caret">·</span><code>index.html</code><span class="fz-hint">浏览器页面：初始化拉取、新增、切换完成、删除</span></div></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 章节 02：完整因果流转与 REST 接口契约 -->
+      <section class="section-block" id="sec-contract" data-num="02" data-nav="请求因果链与 REST 契约">
+        <span class="section-eyebrow">02 / 一次点击背后发生了什么</span>
+        <h2>从前端点击到 <code>req.body</code>：完整因果链与接口契约</h2>
+        <p>零基础同学写后端接口时，最常遇到报错 <code>Cannot read properties of undefined (reading 'title')</code>（意思是你想读 <code>title</code>，但整个包裹都是空的）。这是因为浏览器与服务端之间只能传输纯文本，无法直接传内存里的对象，中间必须经历下面 4 步“打包 → 发信 → 拆包 → 存盘”的完整变形：</p>
+
+        <div class="causal-chain">
+          <div class="causal-step">
+            <span class="causal-step-tag">01 · 浏览器事件</span>
+            <div class="causal-step-title">拦住刷新并打包</div>
+            <p class="causal-step-desc"><button class="term-chip" data-term-tip="e 是事件对象，preventDefault() 的意思是“阻止默认行为”。网页表单默认一提交就会刷新整页，调用它才能留在当前页悄悄发请求。">e.preventDefault()</button> 阻止整页刷新，再用 <button class="term-chip" data-term-tip="JSON 是一种通用文本格式（长得很像 JS 对象）。JSON.stringify() 把内存里的对象压成一段纯文本字符串，才能通过网络发送。">JSON.stringify</button> 把任务对象压成文本。</p>
+          </div>
+          <div class="causal-arrow">→</div>
+          <div class="causal-step">
+            <span class="causal-step-tag">02 · HTTP 报文</span>
+            <div class="causal-step-title">贴好标签寄往端口</div>
+            <p class="causal-step-desc">请求头里必须附上 <code>Content-Type: application/json</code>，就像快递箱上贴“易碎品”，告诉服务器里面装的是 JSON；然后发往本机 <button class="term-chip" data-term-tip="端口（Port）就像一栋办公楼里的房间号。你的电脑（localhost）可以同时跑很多程序，我们让 Express 服务端占住 3000 号房间专门接任务请求。">3000 端口</button>。</p>
+          </div>
+          <div class="causal-arrow">→</div>
+          <div class="causal-step">
+            <span class="causal-step-tag">03 · 中间件解析</span>
+            <div class="causal-step-title">拆包放进 <code>req.body</code></div>
+            <p class="causal-step-desc"><button class="term-chip" data-term-tip="中间件（Middleware）是请求到达正式业务代码前必经的安检/预处理关卡。express.json() 这个中间件专门负责把纯文本请求体重新解析回 JS 对象。">express.json()</button> 截获纯文本，执行 <code>JSON.parse</code> 还原成对象，挂载到请求对象 <code>req.body</code> 上交给后端函数。</p>
+          </div>
+          <div class="causal-arrow">→</div>
+          <div class="causal-step">
+            <span class="causal-step-tag">04 · 落盘与回执</span>
+            <div class="causal-step-title">存进 SQLite 并回复</div>
+            <p class="causal-step-desc">数据库把新任务写进硬盘文件后，服务端回复 <button class="term-chip" data-term-tip="HTTP 状态码是服务器用 3 位数字向浏览器报告处理结果：200=成功，201=新建成功，400=你参数没填对，404=找不到该记录，500=服务器内部崩溃。">201 状态码</button>和新数据行，前端再刷新列表。</p>
+          </div>
+        </div>
+
+        <p>TaskFlow 的完整功能由以下 4 条 <button class="term-chip" data-term-tip="REST API 是一种按资源和 HTTP 动作（GET 读取、POST 新建、PATCH 局部更新、DELETE 删除）设计后端接口的常见约定。">REST API</button> 契约组成——注意初始化拉取、新增、切换状态与删除各自对应不同的 HTTP 方法与状态码：</p>
+
+        <div class="spec-table-wrap">
+          <table class="spec-table">
+            <thead>
+              <tr><th>场景</th><th>方法与路径</th><th>请求携带内容</th><th>正常返回与状态码</th><th>异常分支</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>页面首次打开</td><td><code>GET /api/tasks</code></td><td>无</td><td><code>200 OK</code> + 任务数组 JSON</td><td>服务未启动时浏览器报连接失败</td></tr>
+              <tr><td>点击“添加”按钮</td><td><code>POST /api/tasks</code></td><td><code>{ "title": "..." }</code></td><td><code>201 Created</code> + 新建任务对象</td><td>标题为空返回 <code>400</code> 提示</td></tr>
+              <tr><td>点击任务文字切换完成态</td><td><code>PATCH /api/tasks/:id</code></td><td>URL 中的 <code>:id</code></td><td><code>200 OK</code> + 更新后的任务对象</td><td>找不到该 id 返回 <code>404</code></td></tr>
+              <tr><td>点击“删除”按钮</td><td><code>DELETE /api/tasks/:id</code></td><td>URL 中的 <code>:id</code></td><td><code>204 No Content</code>（无响应体）</td><td>找不到该 id 返回 <code>404</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 章节 03：项目原生可操作微沙盘 -->
+      <section class="section-block" id="sec-sandbox" data-num="03" data-nav="互动沙盘：请求落盘与 SQL">
+        <span class="section-eyebrow">03 / 亲手发送请求，观察数据如何落盘</span>
+        <h2>互动微沙盘：全栈增删改查与 SQL 注入实验</h2>
+        <p>下面运行着与 TaskFlow 完全同构的内存模拟逻辑。你可以输入带英文单引号的任务（如 <code>Buy Bob's coffee</code>），对比「参数化占位符 <code>?</code>」与「字符串拼接」的真实结果，也可以直接对下方 <code>tasks</code> 表行点击「切换」或「删除」。</p>
+
+        <div class="fz-card">
+          <div class="fz-card-header">
+            <span class="fz-badge-terracotta">可操作全栈微沙盘</span>
+            <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
+              <button class="fz-btn" onclick="fillPresetText(&quot;Buy Bob's coffee&quot;)">填入带单引号文本</button>
+              <button class="fz-btn" onclick="fillPresetText('完成接口联调')">填入普通中文</button>
+              <button class="fz-btn" onclick="sandboxGetAll()">模拟 GET 初始化拉取</button>
+            </div>
+          </div>
+
+          <div class="sandbox-guide">
+            <div class="sandbox-guide-title">怎么操作这个实验台（3 步看懂全栈请求与 SQL 安全）：</div>
+            <ol>
+              <li><strong>正常写入：</strong>保持下方「使用 <code>?</code> 参数化占位符」为勾选状态，直接点击橙色按钮<strong>「发送 POST /api/tasks」</strong>，观察左侧黑色日志窗口与右侧 <code>tasks</code> 表同步多出第 2 行。</li>
+              <li><strong>复现单引号崩溃：</strong>取消勾选「使用 <code>?</code> 参数化占位符」，确保输入框仍为 <code>Buy Bob's coffee</code>，再点一次<strong>「发送 POST /api/tasks」</strong>——左侧会立刻报出 <code>500 SqliteError</code>！</li>
+              <li><strong>体验改与删：</strong>在右侧表格的「操作」列点击<strong>「切换」</strong>（完成态 0/1 翻转）或<strong>「删除」</strong>，也可以点击右上角「模拟 GET 初始化拉取」查看全量查询 SQL。</li>
+            </ol>
+          </div>
+
+          <div class="sandbox-input-row">
+            <input id="sb-task-input" class="sandbox-input" type="text" value="Buy Bob's coffee" placeholder="输入一条待办任务标题..." />
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input id="sb-safe-mode" type="checkbox" checked />
+              <span>使用 <code>?</code> 参数化占位符（推荐）</span>
+            </label>
+            <button class="fz-btn fz-btn-primary" onclick="sandboxCreateTask()">发送 POST /api/tasks</button>
+          </div>
+
+          <div class="sandbox-split">
+            <div>
+              <h4>1. HTTP 请求与 SQLite 执行日志</h4>
+              <div class="terminal-sim" style="margin:0.5rem 0 0;">
+                <div class="terminal-bar">
+                  <div class="terminal-dots"><span></span><span></span><span></span></div>
+                  <span style="font-family:var(--font-mono); font-size:0.74rem; color:#E5B47A;" id="sb-http-status">等待触发请求</span>
+                </div>
+                <div class="terminal-body" id="sb-log-body">点击上方按钮，这里会实时打印请求体、SQL 语句与状态码。</div>
+              </div>
+            </div>
+            <div>
+              <h4>2. SQLite <code>tasks</code> 表实时行状态</h4>
+              <div style="border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; margin-top:0.5rem;">
+                <table class="db-table">
+                  <thead><tr><th>id</th><th>title</th><th>completed</th><th>操作</th></tr></thead>
+                  <tbody id="sb-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="jit-concept">
+          <div class="jit-concept-title">
+            <span class="fz-badge-terracotta">核心安全机制</span>
+            <span>为什么必须用 <code>?</code> 占位符而不是模板字符串拼接 SQL？</span>
+          </div>
+          <p style="margin:0; color:var(--text-primary);">取消勾选上方复选框并提交 <code>Buy Bob's coffee</code> 时，拼接出的 SQL 变成 <code>VALUES ('Buy Bob's coffee')</code>——输入里的单引号提前闭合了字符串，直接触发 <code>SqliteError</code>（HTTP 500）。使用 <code>?</code> 占位符后，SQLite 会先编译好语句结构，再把用户输入当作纯文本绑定进去，彻底杜绝标点报错与 SQL 注入。</p>
+        </div>
+
+        <details class="deep-dive">
+          <summary>底层深挖：<code>db.pragma("journal_mode = WAL")</code> 到底改变了什么？</summary>
+          <div class="deep-dive-body">
+            <p>SQLite 默认使用回滚日志模式：每次写入数据时都会锁住整个 <code>taskflow.db</code> 文件，此时如果刚好有另一个读请求进来只能排队等待。开启 <code>WAL (Write-Ahead Logging)</code> 后，新写入的数据先追加到旁边的 <code>taskflow.db-wal</code> 文件里，读取请求照常读主文件，读写互不阻塞，个人全栈项目响应会更顺滑。</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 章节 04：从零编写全部 4 个文件（高密度注解 + 双向联动） -->
+      <section class="section-block" id="sec-build" data-num="04" data-nav="从零编写全部 4 个文件">
+        <span class="section-eyebrow">04 / 真·从零开始，按依赖顺序写出全部文件</span>
+        <h2>手把手编写全部 4 个文件（Step 0 ~ Step 4）</h2>
+        <p><strong>提示：</strong>下方所有代码块都支持<strong>双向点击联动</strong>——点击代码下方的注解卡片，上方对应代码行会高亮定位；反过来点击代码里<strong>带陶土红行号</strong>的代码行，也会反向高亮对应的注解！</p>
+
+        <div class="fz-card">
+          <div class="fz-card-header">
+            <span class="fz-badge-terracotta">Step 0 · 环境检查与建目录</span>
+            <span class="fz-hint">Windows PowerShell 与 macOS/Linux 通用</span>
+          </div>
+          <ul class="duty-list">
+            <li>1. 打开终端（VS Code 按 <code>Ctrl + `</code>），执行 <code>node -v</code>。若提示“找不到命令”，请先到 nodejs.org 安装 LTS 版本并重启终端。</li>
+            <li>2. 创建空目录与前端子目录：Windows PowerShell 执行 <code>mkdir taskflow; cd taskflow; mkdir public</code>（macOS/Linux 执行 <code>mkdir -p taskflow/public && cd taskflow</code>）。</li>
+          </ul>
+        </div>
+
+        <!-- Step 1: package.json -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">Step 1 · 配置文件</span><code>package.json</code>
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="tf-step-1" /><span>标记本步已完成</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="json" data-highlight="4,5,7,8">
+              <div class="code-topbar">
+                <code>package.json</code>
+                <div class="code-actions"><button class="fz-btn" data-copy-code>复制完整代码</button></div>
+              </div>
+              <pre class="code-pre"><code>{
+  "name": "taskflow",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.21.0"
+  }
+}</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="4">
+                <span class="fz-badge-terracotta">L4</span>
+                <p><strong>开启 ES Module：</strong>写上 <code>"type": "module"</code> 后，Node.js 才允许使用现代的 <code>import / export</code> 语法，否则会报 <code>SyntaxError: Cannot use import statement</code>。</p>
+              </div>
+              <div class="annot-item" data-lines="5">
+                <span class="fz-badge-terracotta">L5</span>
+                <p><strong>自定义启动脚本：</strong>配置后只需输入 <code>npm start</code>，就等价于执行 <code>node server.js</code>。</p>
+              </div>
+            </div>
+          </div>
+          <div class="terminal-sim" style="margin-bottom:0;">
+            <div class="terminal-bar"><span style="font-family:var(--font-mono); font-size:0.74rem; color:#E5B47A;">本步验证：安装依赖</span></div>
+            <div class="terminal-body"><div class="term-cmd">$ npm install</div><div class="term-out">added 72 packages（目录中生成 node_modules 与 package-lock.json）</div></div>
+          </div>
+        </div>
+
+        <!-- Step 2: db.js -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">Step 2 · 数据库层</span><code>db.js</code>
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="tf-step-2" /><span>标记本步已完成</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="js" data-highlight="3,4,7,18,23,28">
+              <div class="code-topbar">
+                <code>db.js</code>
+                <div class="code-actions"><button class="fz-btn" data-copy-code>复制完整代码</button></div>
+              </div>
+              <pre class="code-pre"><code>import Database from "better-sqlite3";
+
+const db = new Database("taskflow.db");
+db.pragma("journal_mode = WAL");
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
+export function listTasks() {
+  return db.prepare("SELECT id, title, completed FROM tasks ORDER BY id DESC").all();
+}
+
+export function createTask(title) {
+  const info = db.prepare("INSERT INTO tasks (title) VALUES (?)").run(title);
+  return db.prepare("SELECT id, title, completed FROM tasks WHERE id = ?").get(info.lastInsertRowid);
+}
+
+export function toggleTask(id) {
+  db.prepare("UPDATE tasks SET completed = CASE WHEN completed = 1 THEN 0 ELSE 1 END WHERE id = ?").run(id);
+  return db.prepare("SELECT id, title, completed FROM tasks WHERE id = ?").get(id);
+}
+
+export function deleteTask(id) {
+  return db.prepare("DELETE FROM tasks WHERE id = ?").run(id).changes > 0;
+}</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="3-4">
+                <span class="fz-badge-terracotta">L3-L4</span>
+                <p><strong>打开本地库文件：</strong>若 <code>taskflow.db</code> 不存在会自动新建；第 4 行开启 WAL 并发模式。</p>
+              </div>
+              <div class="annot-item" data-lines="6-9">
+                <span class="fz-badge-terracotta">L6-L9</span>
+                <p><strong>幂等建表与主键自增：</strong><code>IF NOT EXISTS</code> 保证重复启动不报错；<code>PRIMARY KEY AUTOINCREMENT</code> 让每条新任务自动获得递增的唯一 <code>id</code>；SQLite 没有布尔类型，用 <code>0/1</code> 表示未完成/已完成。</p>
+              </div>
+              <div class="annot-item" data-lines="18-19">
+                <span class="fz-badge-terracotta">L18-L19</span>
+                <p><strong>预编译写入与回查：</strong><code>.run(title)</code> 把参数安全填入 <code>?</code>；随后用 <code>info.lastInsertRowid</code> 立即查出刚才生成的完整行（含自增 <code>id</code>）返回给前端。</p>
+              </div>
+              <div class="annot-item" data-lines="23">
+                <span class="fz-badge-terracotta">L23</span>
+                <p><strong>SQL 语法 <code>CASE WHEN</code>：</strong>相当于 SQL 里的 <code>if/else</code>——如果当前 <code>completed</code> 是 1 就改成 0，否则改成 1，一条语句完成状态翻转。</p>
+              </div>
+              <div class="annot-item" data-lines="28">
+                <span class="fz-badge-terracotta">L28</span>
+                <p><strong>判断是否真删到了数据：</strong><code>.changes</code> 表示受影响的行数，大于 0 说明确实删掉了这条任务，否则说明 <code>id</code> 不存在。</p>
+              </div>
+            </div>
+          </div>
+          <div class="terminal-sim" style="margin-bottom:0;">
+            <div class="terminal-bar"><span style="font-family:var(--font-mono); font-size:0.74rem; color:#E5B47A;">本步验证：单独测试数据库写入</span></div>
+            <div class="terminal-body"><div class="term-cmd">$ node -e "import('./db.js').then(m =&gt; console.log(m.createTask('测试第一条')))"</div><div class="term-out">{ id: 1, title: '测试第一条', completed: 0 }（同时目录里出现 taskflow.db）</div></div>
+          </div>
+        </div>
+
+        <!-- Step 3: server.js -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">Step 3 · 接口服务层</span><code>server.js</code>
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="tf-step-3" /><span>标记本步已完成</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="js" data-highlight="5,6,13,14,19,25">
+              <div class="code-topbar">
+                <code>server.js</code>
+                <div class="code-actions"><button class="fz-btn" data-copy-code>复制完整代码</button></div>
+              </div>
+              <pre class="code-pre"><code>import express from "express";
+import { listTasks, createTask, toggleTask, deleteTask } from "./db.js";
+
+const app = express();
+app.use(express.json());
+app.use(express.static("public"));
+
+app.get("/api/tasks", (req, res) => {
+  res.json(listTasks());
+});
+
+app.post("/api/tasks", (req, res) => {
+  const title = String(req.body?.title || "").trim();
+  if (!title) return res.status(400).json({ error: "任务标题不能为空" });
+  res.status(201).json(createTask(title));
+});
+
+app.patch("/api/tasks/:id", (req, res) => {
+  const updated = toggleTask(Number(req.params.id));
+  if (!updated) return res.status(404).json({ error: "任务不存在" });
+  res.json(updated);
+});
+
+app.delete("/api/tasks/:id", (req, res) => {
+  const ok = deleteTask(Number(req.params.id));
+  res.status(ok ? 204 : 404).end();
+});
+
+app.listen(3000, () => console.log("TaskFlow running at http://localhost:3000"));</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="5-6">
+                <span class="fz-badge-terracotta">L5-L6</span>
+                <p><strong>两个核心中间件：</strong><code>express.json()</code> 解析请求体到 <code>req.body</code>（必须写在路由之前）；<code>express.static("public")</code> 让访问根路径时自动返回 <code>public/index.html</code>。</p>
+              </div>
+              <div class="annot-item" data-lines="13-15">
+                <span class="fz-badge-terracotta">L13-L15</span>
+                <p><strong>可选链 <code>?.</code> 与输入边界校验：</strong><code>req.body?.title</code> 表示哪怕 <code>req.body</code> 是空也不会报错崩溃；<code>.trim()</code> 去掉首尾空格，若为空则拦截返回 <code>400</code>，创建成功返回 <code>201</code>。</p>
+              </div>
+              <div class="annot-item" data-lines="18-20">
+                <span class="fz-badge-terracotta">L18-L20</span>
+                <p><strong>动态路由参数 <code>:id</code>：</strong>URL 里的 <code>req.params.id</code> 默认是字符串，必须包一层 <code>Number(...)</code> 转成数字再查库；若返回 <code>undefined</code> 则响应 <code>404</code>。</p>
+              </div>
+              <div class="annot-item" data-lines="25-26">
+                <span class="fz-badge-terracotta">L25-L26</span>
+                <p><strong>无内容响应 <code>.end()</code>：</strong><code>204 No Content</code> 代表删除成功且不返回任何 JSON 体，直接调用 <code>.end()</code> 结束本次 HTTP 连接。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: public/index.html -->
+        <div class="fz-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.65rem;">
+            <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+              <span class="fz-badge-terracotta">Step 4 · 浏览器界面</span><code>public/index.html</code>
+            </div>
+            <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.84rem; cursor:pointer;">
+              <input type="checkbox" data-step-id="tf-step-4" /><span>标记本步已完成</span>
+            </label>
+          </div>
+          <div class="step-code-group">
+            <div class="code-walkthrough" data-lang="html" data-highlight="23,24,33,36,43,44" data-focus="22-46">
+              <div class="code-topbar">
+                <code>public/index.html</code>
+                <div class="code-actions">
+                  <button class="fz-btn" data-toggle-view>仅看核心行 (L22-L46)</button>
+                  <button class="fz-btn" data-copy-code>复制完整代码</button>
+                </div>
+              </div>
+              <pre class="code-pre"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8" /&gt;
+  &lt;title&gt;TaskFlow&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 3rem auto; padding: 0 1rem; }
+    form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    input { flex: 1; padding: 0.5rem; }
+    li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .done { text-decoration: line-through; color: #888; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;TaskFlow 待办&lt;/h1&gt;
+  &lt;form id="task-form"&gt;
+    &lt;input id="task-input" placeholder="输入新任务..." required /&gt;
+    &lt;button type="submit"&gt;添加&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;ul id="task-list"&gt;&lt;/ul&gt;
+  &lt;script&gt;
+    const listEl = document.getElementById("task-list");
+    async function loadTasks() {
+      const res = await fetch("/api/tasks");
+      const tasks = await res.json();
+      listEl.innerHTML = tasks.map(t =&gt; `
+        &lt;li&gt;
+          &lt;span class="${t.completed ? "done" : ""}" onclick="toggle(${t.id})"&gt;${t.title}&lt;/span&gt;
+          &lt;button onclick="removeTask(${t.id})"&gt;删除&lt;/button&gt;
+        &lt;/li&gt;
+      `).join("");
+    }
+    document.getElementById("task-form").addEventListener("submit", async (e) =&gt; {
+      e.preventDefault();
+      const input = document.getElementById("task-input");
+      await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: input.value })
+      });
+      input.value = "";
+      loadTasks();
+    });
+    async function toggle(id) { await fetch(`/api/tasks/${id}`, { method: "PATCH" }); loadTasks(); }
+    async function removeTask(id) { await fetch(`/api/tasks/${id}`, { method: "DELETE" }); loadTasks(); }
+    loadTasks();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+            </div>
+            <div class="annot-list">
+              <div class="annot-item" data-lines="23-25">
+                <span class="fz-badge-terracotta">L23-L25</span>
+                <p><strong><code>async/await</code> 异步拉取：</strong>网络请求需要几毫秒，用 <code>await</code> 等待服务器返回后，再把 JSON 数组拼成 HTML 列表。</p>
+              </div>
+              <div class="annot-item" data-lines="33-34">
+                <span class="fz-badge-terracotta">L33-L34</span>
+                <p><strong>阻止表单默认跳转：</strong>HTML 表单提交默认会刷新整个网页，<code>e.preventDefault()</code> 拦截该行为，改由下方的 <code>fetch()</code> 在后台无刷新提交。</p>
+              </div>
+              <div class="annot-item" data-lines="36-40">
+                <span class="fz-badge-terracotta">L36-L40</span>
+                <p><strong>请求头与序列化：</strong>必须把对象 <code>JSON.stringify</code> 成字符串并附上 <code>Content-Type</code>，后端的 <code>express.json()</code> 才会工作。</p>
+              </div>
+              <div class="annot-item" data-lines="44-45">
+                <span class="fz-badge-terracotta">L44-L45</span>
+                <p><strong>状态同步：</strong>每次切换或删除完成后立刻重新调用 <code>loadTasks()</code>，确保界面与硬盘数据库始终一致。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 章节 05：启动运行与双控制台排错 -->
+      <section class="section-block" id="sec-debug" data-num="05" data-nav="启动运行与排错定位">
+        <span class="section-eyebrow">05 / 保持服务运行再打开浏览器</span>
+        <h2>本地启动与排错定位</h2>
+        <p><strong>新手最易忽略的操作顺序：</strong>在终端执行 <code>npm start</code> 后，<strong>不要关闭这个终端窗口</strong>（服务端需要一直监听 3000 端口），然后打开浏览器访问 <code>http://localhost:3000</code>（不要直接双击 <code>public/index.html</code>，否则 <code>/api/tasks</code> 找不到端口）。</p>
+
+        <div class="two-col-grid">
+          <div class="fz-card">
+            <h4>看浏览器 DevTools (F12 → Network)</h4>
+            <p style="margin:0; font-size:0.9rem;">如果点“添加”没反应，先看 Network 面板里请求的状态码：<code>400</code> 是传参为空，<code>404</code> 是路径拼错，<code>Failed to fetch</code> 通常是服务端终端关掉了。</p>
+          </div>
+          <div class="fz-card">
+            <h4>看运行 <code>node server.js</code> 的终端</h4>
+            <p style="margin:0; font-size:0.9rem;">如果状态码是 <code>500</code> 或根本启动不了，立刻切回终端看红色报错堆栈（如 SQLite 语法错、或 <code>EADDRINUSE</code> 端口被旧进程占用）。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const slug = document.body.getAttribute("data-project-slug") || "from-zero-project";
+      const STORAGE_KEY = `fz_progress_${slug}`;
+      const THEME_KEY = "fz_theme_pref";
+      let completedSteps = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+
+      window.initTheme = function () {
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+      };
+      window.toggleTheme = function () {
+        const cur = document.documentElement.getAttribute("data-theme") || "light";
+        const next = cur === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem(THEME_KEY, next);
+      };
+      window.fzToggleMobileNav = function () { document.getElementById("app-sidebar")?.classList.toggle("open"); };
+
+      window.fzBuildSidebar = function () {
+        const navEl = document.getElementById("sidebar-nav");
+        const sections = Array.from(document.querySelectorAll("#main-canvas > section[data-nav]"));
+        if (!navEl || sections.length === 0) return;
+        navEl.innerHTML = sections.map((sec, idx) => `
+          <li><a class="nav-link ${idx === 0 ? "active" : ""}" data-nav-target="${sec.id}" href="#${sec.id}">
+            <span class="nav-num">${sec.getAttribute("data-num") || String(idx + 1).padStart(2, "0")}<\/span>
+            <span>${sec.getAttribute("data-nav")}<\/span>
+          <\/a><\/li>
+        `).join("");
+        navEl.querySelectorAll(".nav-link").forEach(link => {
+          link.addEventListener("click", () => {
+            manualNavLockUntil = Date.now() + 650;
+            setActiveNav(link.getAttribute("data-nav-target"));
+            document.getElementById("app-sidebar")?.classList.remove("open");
+          });
+        });
+      };
+
+      let manualNavLockUntil = 0;
+      function setActiveNav(sectionId) {
+        document.querySelectorAll("#sidebar-nav .nav-link").forEach(link => {
+          link.classList.toggle("active", link.getAttribute("data-nav-target") === sectionId);
+        });
+      }
+      window.updateScrollSpy = function () {
+        if (Date.now() < manualNavLockUntil) return;
+        const sections = Array.from(document.querySelectorAll("#main-canvas > section[data-nav]"));
+        if (sections.length === 0) return;
+        if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 40)) {
+          setActiveNav(sections[sections.length - 1].id);
+          return;
+        }
+        const triggerLine = window.innerHeight * 0.28;
+        let currentId = sections[0].id;
+        for (const sec of sections) {
+          if (sec.getBoundingClientRect().top <= triggerLine) currentId = sec.id;
+          else break;
+        }
+        setActiveNav(currentId);
+      };
+      let scrollTicking = false;
+      window.addEventListener("scroll", () => {
+        if (!scrollTicking) {
+          window.requestAnimationFrame(() => { window.updateScrollSpy(); scrollTicking = false; });
+          scrollTicking = true;
+        }
+      }, { passive: true });
+
+      window.updateProgressUI = function () {
+        const boxes = Array.from(document.querySelectorAll("input[type='checkbox'][data-step-id]"));
+        const total = boxes.length;
+        const done = boxes.filter(b => completedSteps.has(b.getAttribute("data-step-id"))).length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        document.getElementById("progress-label").textContent = `${done} / ${total} 步已完成`;
+        document.getElementById("progress-fill").style.width = `${pct}%`;
+      };
+      window.fzInitProgress = function () {
+        document.querySelectorAll("input[type='checkbox'][data-step-id]").forEach(box => {
+          const stepId = box.getAttribute("data-step-id");
+          box.checked = completedSteps.has(stepId);
+          box.addEventListener("change", () => {
+            if (box.checked) completedSteps.add(stepId);
+            else completedSteps.delete(stepId);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([...completedSteps]));
+            window.updateProgressUI();
+          });
+        });
+        window.updateProgressUI();
+      };
+      window.resetProgress = function () {
+        completedSteps.clear();
+        localStorage.setItem(STORAGE_KEY, "[]");
+        document.querySelectorAll("input[type='checkbox'][data-step-id]").forEach(b => { b.checked = false; });
+        window.updateProgressUI();
+      };
+
+      window.fzCopyText = function (text, btn) {
+        const done = () => { if (!btn) return; const old = btn.textContent; btn.textContent = "✓ 已复制"; setTimeout(() => { btn.textContent = old; }, 1400); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+        else fallbackCopy(text, done);
+      };
+      function fallbackCopy(text, cb) {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta); cb();
+      }
+
+      // 词法高亮器（单遍扫描注释与字符串，修复 URL 含 // 截断与实体字符串高亮问题）
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      window.fzHighlightLine = function (rawLine, lang) {
+        let html = esc(rawLine);
+        const tokens = [];
+        const stash = (cls, match) => {
+          const id = `___FZTOK_${tokens.length}___`;
+          tokens.push(`<span class="${cls}">${match}<\/span>`);
+          return id;
+        };
+
+        const strPat = "&quot;(?:\\\\&quot;|(?!&quot;).)*?&quot;|'(?:\\\\'|[^'])*?'|`(?:\\\\`|[^`])*?`";
+        if (lang === "py" || lang === "bash") {
+          html = html.replace(new RegExp(`(#.*$)|(${strPat})`, "g"), (m, com, str) =>
+            com ? stash("tok-com", com) : stash("tok-str", str)
+          );
+        } else if (lang === "html") {
+          html = html.replace(new RegExp(`(&lt;!--[\\s\\S]*?--&gt;)|(${strPat})`, "g"), (m, com, str) =>
+            com ? stash("tok-com", com) : stash("tok-str", str)
+          );
+        } else if (lang === "json") {
+          html = html.replace(/(&quot;(?:\\&quot;|(?!&quot;).)*?&quot;)(\s*:)?/g, (_, k, colon) =>
+            colon ? stash("tok-fn", k) + colon : stash("tok-str", k)
+          );
+        } else {
+          html = html.replace(new RegExp(`(\\/\\/.*$|\\/\\*[\\s\\S]*?\\*\\/)|(${strPat})`, "g"), (m, com, str) =>
+            com ? stash("tok-com", com) : stash("tok-str", str)
+          );
+        }
+
+        if (lang === "html") {
+          html = html.replace(/(&lt;\/?[a-zA-Z0-9-]+)/g, '<span class="tok-tag">$1<\/span>');
+          html = html.replace(/(\/?&gt;)/g, '<span class="tok-tag">$1<\/span>');
+        } else if (lang === "css") {
+          html = html.replace(/(^|[\s{;])([a-z-]+)(\s*:)/g, '$1<span class="tok-fn">$2<\/span>$3');
+        } else if (lang !== "json") {
+          html = html.replace(/\b(const|let|var|function|async|await|return|import|export|from|default|if|else|for|of|in|while|try|catch|new|class|def|true|false|null|undefined|SELECT|INSERT|INTO|VALUES|UPDATE|SET|CASE|WHEN|THEN|ELSE|END|DELETE|FROM|WHERE|ORDER|BY|DESC|CREATE|TABLE|IF|NOT|EXISTS|PRIMARY|KEY|AUTOINCREMENT|INTEGER|TEXT)\b/g,
+            '<span class="tok-kw">$1<\/span>');
+        } else {
+          html = html.replace(/\b(true|false|null)\b/g, '<span class="tok-kw">$1<\/span>');
+        }
+
+        html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1<\/span>');
+        html = html.replace(/___FZTOK_(\d+)___/g, (_, idx) => tokens[Number(idx)]);
+        return html;
+      };
+
+      function parseLineSpec(spec) {
+        const set = new Set();
+        String(spec || "").split(",").forEach(part => {
+          const p = part.trim();
+          if (!p) return;
+          if (p.includes("-")) {
+            const [a, b] = p.split("-").map(n => parseInt(n.trim(), 10));
+            if (a && b) for (let k = a; k <= b; k++) set.add(k);
+          } else { const n = parseInt(p, 10); if (n) set.add(n); }
+        });
+        return set;
+      }
+
+      window.fzInitCodeWalkthroughs = function () {
+        document.querySelectorAll(".code-walkthrough").forEach(box => {
+          const codeEl = box.querySelector("pre.code-pre code");
+          if (!codeEl) return;
+          const rawText = codeEl.textContent.replace(/^\n+|\n+$/g, "");
+          const lang = box.getAttribute("data-lang") || "js";
+          const hlSet = new Set((box.getAttribute("data-highlight") || "").split(",").map(s => parseInt(s.trim(), 10)).filter(Boolean));
+          const focusAttr = box.getAttribute("data-focus");
+          let focusRange = null;
+          if (focusAttr && focusAttr.includes("-")) {
+            const [s, e] = focusAttr.split("-").map(n => parseInt(n.trim(), 10));
+            if (s && e) focusRange = [s, e];
+          }
+          const scope = box.parentElement;
+          const annotItems = Array.from(scope?.querySelectorAll(".annot-item[data-lines]") || []);
+          const lineToAnnots = new Map();
+          annotItems.forEach(item => {
+            parseLineSpec(item.getAttribute("data-lines")).forEach(ln => {
+              if (!lineToAnnots.has(ln)) lineToAnnots.set(ln, []);
+              lineToAnnots.get(ln).push(item);
+            });
+          });
+
+          codeEl.innerHTML = rawText.split("\n").map((line, i) => {
+            const ln = i + 1;
+            const hasAnnot = lineToAnnots.has(ln) ? "has-annot" : "";
+            return `<span class="code-line ${hlSet.has(ln) ? "highlight" : ""} ${hasAnnot}" data-line="${ln}"${hasAnnot ? ' title="点击查看对应注解"' : ''}><span class="ln">${ln}<\/span>${window.fzHighlightLine(line, lang)}<\/span>`;
+          }).join("");
+
+          const copyBtn = box.querySelector("[data-copy-code]");
+          if (copyBtn) copyBtn.addEventListener("click", () => window.fzCopyText(rawText, copyBtn));
+          const viewBtn = box.querySelector("[data-toggle-view]");
+          if (viewBtn && focusRange) {
+            let focusMode = false;
+            viewBtn.addEventListener("click", () => {
+              focusMode = !focusMode;
+              codeEl.querySelectorAll(".code-line").forEach(el => {
+                const ln = parseInt(el.getAttribute("data-line"), 10);
+                el.classList.toggle("is-collapsed-line", focusMode && (ln < focusRange[0] || ln > focusRange[1]));
+              });
+              viewBtn.textContent = focusMode ? "展开完整文件" : `仅看核心行 (L${focusRange[0]}-L${focusRange[1]})`;
+            });
+          } else if (viewBtn) { viewBtn.style.display = "none"; }
+
+          const activateLines = (targetSet, scrollCode) => {
+            let firstEl = null;
+            codeEl.querySelectorAll(".code-line").forEach(el => {
+              const hit = targetSet.has(parseInt(el.getAttribute("data-line"), 10));
+              el.classList.toggle("focus-pulse", hit);
+              if (hit) {
+                if (scrollCode) el.classList.remove("is-collapsed-line");
+                if (!firstEl) firstEl = el;
+              }
+            });
+            if (scrollCode && firstEl) {
+              firstEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            }
+          };
+
+          annotItems.forEach(item => {
+            item.addEventListener("click", () => {
+              annotItems.forEach(a => a.classList.remove("active"));
+              item.classList.add("active");
+              activateLines(parseLineSpec(item.getAttribute("data-lines")), true);
+            });
+          });
+          codeEl.querySelectorAll(".code-line.has-annot").forEach(lineEl => {
+            lineEl.addEventListener("click", () => {
+              const matched = lineToAnnots.get(parseInt(lineEl.getAttribute("data-line"), 10)) || [];
+              if (!matched.length) return;
+              annotItems.forEach(a => a.classList.remove("active"));
+              matched.forEach(a => a.classList.add("active"));
+              activateLines(parseLineSpec(matched[0].getAttribute("data-lines")), false);
+              matched[0].scrollIntoView({ block: "nearest", behavior: "smooth" });
+            });
+          });
+        });
+      };
+
+      window.fzInitTermChips = function () {
+        document.querySelectorAll(".term-chip[data-term-tip]").forEach(chip => {
+          chip.setAttribute("type", "button");
+          chip.setAttribute("aria-expanded", "false");
+          chip.addEventListener("click", () => {
+            const existing = chip.nextElementSibling;
+            if (existing && existing.classList.contains("term-popover") && existing.dataset.forTerm === chip.textContent) {
+              existing.remove(); chip.classList.remove("open"); chip.setAttribute("aria-expanded", "false"); return;
+            }
+            const pop = document.createElement("span");
+            pop.className = "term-popover"; pop.dataset.forTerm = chip.textContent;
+            pop.textContent = `${chip.textContent}：${chip.getAttribute("data-term-tip")}`;
+            chip.insertAdjacentElement("afterend", pop);
+            chip.classList.add("open"); chip.setAttribute("aria-expanded", "true");
+          });
+        });
+      };
+
+      window.fzToggleTree = function (rowEl) {
+        const li = rowEl.parentElement;
+        if (!li || !li.querySelector(".tree-children")) return;
+        li.classList.toggle("collapsed");
+        const caret = rowEl.querySelector(".tree-caret");
+        if (caret) caret.textContent = li.classList.contains("collapsed") ? "▸" : "▾";
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        window.initTheme(); window.fzBuildSidebar(); window.fzInitProgress();
+        window.fzInitCodeWalkthroughs(); window.fzInitTermChips(); window.updateScrollSpy();
+      });
+    })();
+  </script>
+
+  <!-- TaskFlow 专属逻辑 -->
+  <script>
+    const TOPO_INFO = {
+      ui: {
+        badge: "边界 1 · 浏览器沙箱", file: "public/index.html", title: "前端交互页面",
+        duties: [
+          "1. 页面打开时发送 GET /api/tasks 拉取历史任务并渲染列表。",
+          "2. 提交表单时调用 e.preventDefault() 阻止整页刷新，改为 fetch POST 提交 JSON。",
+          "3. 受浏览器沙箱隔离，不能直接访问服务器硬盘上的 taskflow.db。"
+        ]
+      },
+      api: {
+        badge: "边界 2 · Node 本地进程", file: "server.js", title: "Express 接口服务",
+        duties: [
+          "1. express.static('public') 将静态 HTML 页面返回给浏览器。",
+          "2. express.json() 将 HTTP 原始请求体解析挂载到 req.body。",
+          "3. 对输入做空值校验与状态码控制（400/404/201/204），并调用 db.js 完成落盘。"
+        ]
+      },
+      db: {
+        badge: "边界 3 · 硬盘持久化", file: "db.js → taskflow.db", title: "SQLite 数据层",
+        duties: [
+          "1. 首次运行自动创建 taskflow.db 并执行 CREATE TABLE IF NOT EXISTS 建表。",
+          "2. 开启 WAL 模式并统一使用 ? 预编译参数化查询，防范标点语法错误与 SQL 注入。",
+          "3. 对外只导出 listTasks / createTask / toggleTask / deleteTask 四个纯函数。"
+        ]
+      }
+    };
+    window.selectTopoNode = function (key, gEl) {
+      document.querySelectorAll(".topo-node").forEach(n => n.classList.remove("active"));
+      if (gEl) gEl.classList.add("active");
+      const info = TOPO_INFO[key]; const drawer = document.getElementById("topo-drawer");
+      if (!info || !drawer) return;
+      drawer.innerHTML = `<div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.45rem;"><span class="fz-badge-terracotta">${info.badge}<\/span><code>${info.file}<\/code><\/div><h3>${info.title}<\/h3><ul class="duty-list">${info.duties.map(d => `<li>${d}<\/li>`).join("")}<\/ul>`;
+    };
+
+    let nextId = 2;
+    let fakeDbRows = [{ id: 1, title: "阅读 TaskFlow 网络边界拓扑", completed: 1, isNew: false }];
+    window.fillPresetText = function (txt) { document.getElementById("sb-task-input").value = txt; };
+
+    function renderSandboxTable() {
+      const tbody = document.getElementById("sb-table-body");
+      if (!tbody) return;
+      if (!fakeDbRows.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted); text-align:center;">tasks 表暂无记录<\/td><\/tr>`;
+        return;
+      }
+      tbody.innerHTML = fakeDbRows.map(r => `
+        <tr class="${r.isNew ? "db-row-new" : ""}">
+          <td>${r.id}<\/td>
+          <td style="word-break:break-word;">${String(r.title).replace(/</g, "&lt;")}<\/td>
+          <td>${r.completed}<\/td>
+          <td>
+            <div class="db-actions">
+              <button class="fz-btn" style="padding:0.24rem 0.52rem; font-size:0.75rem;" onclick="sandboxToggleRow(${r.id})">切换<\/button>
+              <button class="fz-btn" style="padding:0.24rem 0.52rem; font-size:0.75rem; color:var(--accent-danger);" onclick="sandboxDeleteRow(${r.id})">删除<\/button>
+            <\/div>
+          <\/td>
+        <\/tr>
+      `).join("");
+    }
+
+    window.sandboxGetAll = function () {
+      document.getElementById("sb-http-status").textContent = "GET /api/tasks → 200 OK";
+      document.getElementById("sb-log-body").textContent =
+        `GET /api/tasks\n执行 SQL: SELECT id, title, completed FROM tasks ORDER BY id DESC\n\n返回 JSON (${fakeDbRows.length} 条记录):\n${JSON.stringify(fakeDbRows.map(({id, title, completed}) => ({id, title, completed})), null, 2)}`;
+    };
+
+    window.sandboxCreateTask = function () {
+      const title = document.getElementById("sb-task-input").value.trim();
+      const safeMode = document.getElementById("sb-safe-mode").checked;
+      const statusEl = document.getElementById("sb-http-status");
+      const logEl = document.getElementById("sb-log-body");
+      if (!title) {
+        statusEl.textContent = "POST /api/tasks → 400 Bad Request";
+        logEl.textContent = `POST /api/tasks  {"title": ""}\n\n[server.js 校验拦截] 400: { "error": "任务标题不能为空" }`;
+        return;
+      }
+      if (!safeMode && title.includes("'")) {
+        statusEl.textContent = "POST /api/tasks → 500 Internal Server Error";
+        logEl.textContent =
+          `POST /api/tasks  {"title": ${JSON.stringify(title)}}\n` +
+          `拼接后的 SQL: INSERT INTO tasks (title) VALUES ('${title}')\n\n` +
+          `SqliteError: near "${title.split("'")[1] || "syntax"}": syntax error\n` +
+          `原因：输入中的英文单引号提前闭合了 SQL 字符串，导致数据库崩溃！`;
+        return;
+      }
+      const row = { id: nextId++, title, completed: 0, isNew: true };
+      fakeDbRows = [row, ...fakeDbRows.map(r => ({ ...r, isNew: false }))];
+      statusEl.textContent = "POST /api/tasks → 201 Created";
+      logEl.textContent = safeMode
+        ? `POST /api/tasks  {"title": ${JSON.stringify(title)}}\n预编译 SQL: INSERT INTO tasks (title) VALUES (?)\n绑定参数: [${JSON.stringify(title)}]\n\n[SQLite OK] 写入第 ${row.id} 行 -> 返回 201 JSON`
+        : `POST /api/tasks  {"title": ${JSON.stringify(title)}}\n拼接后的 SQL: INSERT INTO tasks (title) VALUES ('${title}')\n\n[SQLite OK] 本次恰好未含单引号，写入第 ${row.id} 行（仍存在注入风险）`;
+      renderSandboxTable();
+    };
+
+    window.sandboxToggleRow = function (id) {
+      fakeDbRows = fakeDbRows.map(r => r.id === id ? { ...r, completed: r.completed ? 0 : 1, isNew: false } : r);
+      document.getElementById("sb-http-status").textContent = `PATCH /api/tasks/${id} → 200 OK`;
+      document.getElementById("sb-log-body").textContent = `执行 SQL: UPDATE tasks SET completed = CASE WHEN completed = 1 THEN 0 ELSE 1 END WHERE id = ? (参数: [${id}])`;
+      renderSandboxTable();
+    };
+
+    window.sandboxDeleteRow = function (id) {
+      fakeDbRows = fakeDbRows.filter(r => r.id !== id);
+      document.getElementById("sb-http-status").textContent = `DELETE /api/tasks/${id} → 204 No Content`;
+      document.getElementById("sb-log-body").textContent = `执行 SQL: DELETE FROM tasks WHERE id = ? (参数: [${id}])`;
+      renderSandboxTable();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      window.selectTopoNode("ui", document.querySelector(".topo-node"));
+      renderSandboxTable();
+    });
+  </script>
+</body>
+</html>
